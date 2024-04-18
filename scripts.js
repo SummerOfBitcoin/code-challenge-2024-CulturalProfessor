@@ -1,7 +1,6 @@
 import CryptoJS from "crypto-js";
 import { Stack } from "./stack.js";
-import EC from "elliptic";
-const ec = new EC.ec("secp256k1");
+import secp256k1 from "secp256k1";
 
 export function verifyP2PKHScript(
   prevout,
@@ -15,12 +14,12 @@ export function verifyP2PKHScript(
   const prevoutScriptAsm = scriptpubkey_asm.split(" ");
   const scriptSigAsm = scriptsig_asm.split(" ");
 
-  const signatureHex = scriptSigAsm[1]; 
-  const publicKeyHex = scriptSigAsm[3]; 
+  const signatureHex = scriptSigAsm[1];
+  const publicKeyHex = scriptSigAsm[3];
 
   stack.push(signatureHex);
   stack.push(publicKeyHex);
-
+  let flag = false;
   prevoutScriptAsm.forEach((instruction, index) => {
     if (instruction === "OP_DUP") {
       stack.push(stack.peek());
@@ -44,24 +43,31 @@ export function verifyP2PKHScript(
       const publicKeyHex = stack.pop();
       const DEREncodedSignatureHex = stack.pop();
 
-      const { r, s } = derToRS(DEREncodedSignatureHex);
-
       const publicKeyBuffer = Buffer.from(publicKeyHex, "hex");
-      const messageBuffer = Buffer.from(messageHash, "hex");
-
-      const result = ec.verify(
-        messageHash,
-        {
-          r: r,
-          s: s,
-        },
+      const { r, s } = derToRS(DEREncodedSignatureHex);
+      if (r === undefined || s === undefined) {
+        return false;
+      }
+      let signature = Buffer.from(r + s, "hex");
+      if (signature.length !== 64) {
+        signature = Buffer.concat([
+          Buffer.alloc(64 - signature.length, 0),
+          signature,
+        ]);
+      }
+      const result = secp256k1.ecdsaVerify(
+        signature,
+        Buffer.from(messageHash, "hex"),
         publicKeyBuffer
       );
 
       if (!result) {
-        throw new Error("Signature verification failed");
+        // console.log("Signature is invalid");
+        return flag=false
       } else {
-        return true;
+        stack.push("1");
+        // console.log("Signature is valid");
+        return flag=true
       }
     } else if (instruction.startsWith("OP_PUSHBYTES_")) {
       index++;
@@ -70,6 +76,7 @@ export function verifyP2PKHScript(
     }
     // console.log(stack.size(), instruction, stack.printStack());
   });
+  return flag
 }
 
 export function derToRS(DEREncodedSignatureHex) {
@@ -78,8 +85,16 @@ export function derToRS(DEREncodedSignatureHex) {
     r = DEREncodedSignatureHex.substr(10, 64);
     s = DEREncodedSignatureHex.substr(78, 64);
   }
+  if (DEREncodedSignatureHex.length === 142) {
+    r = DEREncodedSignatureHex.substr(8, 64);
+    s = DEREncodedSignatureHex.substr(76, 64);
+  }
   // implement for 71 bytes also
-  r = BigInt(`0x${r}`);
-  s = BigInt(`0x${s}`);
-  return { r, s };
+  if (r !== undefined && s !== undefined) {
+    r = BigInt(`0x${r}`).toString(16);
+    s = BigInt(`0x${s}`).toString(16);
+    return { r, s };
+  } else {
+    return { r: undefined, s: undefined };
+  }
 }
