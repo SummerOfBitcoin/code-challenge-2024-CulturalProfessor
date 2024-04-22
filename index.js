@@ -6,7 +6,7 @@ import {
   msgHashForSigVerification,
 } from "./messageHash.js";
 import { reverseBytes, doubleSHA256Hash } from "./utils.js";
-import fs, { chownSync } from "fs";
+import fs from "fs";
 
 const transactionJSON = {
   version: 1,
