@@ -1,1 +1,1 @@
-nodemon output.js
+node output.js
