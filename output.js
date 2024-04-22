@@ -55,7 +55,7 @@ async function createMerkleRoot() {
       let left = merkleTree[i];
       let right = i + 1 === merkleTree.length ? left : merkleTree[i + 1];
       let concat = left + right;
-      let hash = CryptoJS.SHA256(CryptoJS.enc.Hex.parse(concat)).toString();
+      let hash = doubleSHA256Hash(concat);
       level.push(hash);
     }
     merkleTree = level;
@@ -66,7 +66,6 @@ async function createMerkleRoot() {
     validTxids: validTxids,
   };
 }
-createBlock();
 
 function createCoinbaseTransaction(totalValue) {
   const coinbaseTransaction = {
@@ -90,7 +89,7 @@ function createCoinbaseTransaction(totalValue) {
       {
         scriptpubkey: "0014a171823325dbad4dbdc558b29f1778eedff066de",
         scriptpubkey_asm:
-          "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
+        "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
         scriptpubkey_type: "p2wpkh",
         scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
         value: totalValue,
@@ -99,3 +98,5 @@ function createCoinbaseTransaction(totalValue) {
   };
   return coinbaseTransaction;
 }
+
+createBlock();
