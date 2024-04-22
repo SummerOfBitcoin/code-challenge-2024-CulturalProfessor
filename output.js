@@ -12,16 +12,14 @@ async function createBlock() {
   const time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-
   const nonce = "00000000";
-  // Maybe error here
-  const target =
-    "0000ffff00000000000000000000000000000000000000000000000000000000";
-  const bits = "1f00ffff";
+  // Maybe error here our target should be lower than this
 
+  const bits = "1d00ffff";
   const blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
-
+    // console.log("Block Header: ", blockHeader);
+    
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
