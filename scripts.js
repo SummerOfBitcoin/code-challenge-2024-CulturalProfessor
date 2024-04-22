@@ -1,6 +1,7 @@
 import CryptoJS from "crypto-js";
 import { Stack } from "./stack.js";
 import secp256k1 from "secp256k1";
+import { derToRS } from "./utils.js";
 
 export function verifyP2PKHScript(
   prevout,
@@ -63,11 +64,13 @@ export function verifyP2PKHScript(
 
       if (!result) {
         // console.log("Signature is invalid");
-        return flag=false
+        flag = false;
+        return false;
       } else {
         stack.push("1");
+        flag = true;
         // console.log("Signature is valid");
-        return flag=true
+        return true;
       }
     } else if (instruction.startsWith("OP_PUSHBYTES_")) {
       index++;
@@ -76,25 +79,33 @@ export function verifyP2PKHScript(
     }
     // console.log(stack.size(), instruction, stack.printStack());
   });
-  return flag
+  return flag;
 }
 
-export function derToRS(DEREncodedSignatureHex) {
-  let r, s;
-  if (DEREncodedSignatureHex.length === 144) {
-    r = DEREncodedSignatureHex.substr(10, 64);
-    s = DEREncodedSignatureHex.substr(78, 64);
+export function verifyP2WPKHScript(prevout, witness, msgHash) {
+  // Extract signature and public key from witness
+  const signatureHex = witness[0];
+  const publicKeyHex = witness[1];
+
+  // Verify the signature
+  const publicKeyBuffer = Buffer.from(publicKeyHex, "hex");
+  const { r, s } = derToRS(signatureHex);
+  if (r === undefined || s === undefined) {
+    return false;
   }
-  if (DEREncodedSignatureHex.length === 142) {
-    r = DEREncodedSignatureHex.substr(8, 64);
-    s = DEREncodedSignatureHex.substr(76, 64);
+  let signature = Buffer.from(r + s, "hex");
+  if (signature.length !== 64) {
+    signature = Buffer.concat([
+      Buffer.alloc(64 - signature.length, 0),
+      signature,
+    ]);
   }
-  // implement for 71 bytes also
-  if (r !== undefined && s !== undefined) {
-    r = BigInt(`0x${r}`).toString(16);
-    s = BigInt(`0x${s}`).toString(16);
-    return { r, s };
-  } else {
-    return { r: undefined, s: undefined };
-  }
+
+  const result = secp256k1.ecdsaVerify(
+    signature,
+    Buffer.from(msgHash, "hex"),
+    publicKeyBuffer
+  );
+
+  return result;
 }
