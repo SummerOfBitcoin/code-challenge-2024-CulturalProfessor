@@ -1,1 +1,1 @@
-node output.js
+npm install && node output.js
