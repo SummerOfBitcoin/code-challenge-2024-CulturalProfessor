@@ -1,15 +1,17 @@
 import { reverseBytes } from "./utils.js";
 
-export function serializeSegWitTransaction(transaction) {
+export function serializeSegWitTransactionForWTXID(transaction) {
   const { version, locktime, vin, vout } = transaction;
-
   let serializedTransaction = "";
+
   // Serialize version
   let paddedVersion = version.toString(16).padStart(8, "0");
   serializedTransaction += reverseBytes(paddedVersion);
 
-  // Serialize marker and flag
+  // Serialize marker
   serializedTransaction += "00";
+
+  // Serialize flag
   serializedTransaction += "01";
 
   // Serialize vin length
@@ -17,10 +19,18 @@ export function serializeSegWitTransaction(transaction) {
 
   // Serialize vin
   vin.forEach((input) => {
-    serializedTransaction += input.txid.match(/.{2}/g).reverse().join("");
+    serializedTransaction += reverseBytes(input.txid);
     let paddedInputVout = input.vout.toString(16).padStart(8, "0");
     serializedTransaction += reverseBytes(paddedInputVout);
-    serializedTransaction += "00"; // scriptSig length for SegWit inputs
+    if (input.scriptsig) {
+      serializedTransaction += input.scriptsig
+        .match(/.{2}/g)
+        .length.toString(16)
+        .padStart(2, "0");
+      serializedTransaction += input.scriptsig;
+    } else {
+      serializedTransaction += "00";
+    }
     serializedTransaction += input.sequence.toString(16).padStart(8, "0");
   });
 
@@ -50,6 +60,7 @@ export function serializeSegWitTransaction(transaction) {
 
   // Serialize locktime
   serializedTransaction += locktime.toString(16).padStart(8, "0");
+
   return serializedTransaction;
 }
 
@@ -75,6 +86,8 @@ export function serializeTransaction(transaction) {
         .length.toString(16)
         .padStart(2, "0");
       serializedTransaction += input.scriptsig;
+    } else {
+      serializedTransaction += "00";
     }
     serializedTransaction += input.sequence.toString(16).padStart(8, "0");
   });

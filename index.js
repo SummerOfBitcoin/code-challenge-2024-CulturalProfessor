@@ -1,9 +1,6 @@
 import CryptoJS from "crypto-js";
 import { verifyP2PKHScript, verifyP2WPKHScript } from "./scripts.js";
-import {
-  serializeSegWitTransaction,
-  serializeTransaction,
-} from "./serialize.js";
+import { serializeTransaction } from "./serialize.js";
 import {
   msgHashForSegWitSigVerification,
   msgHashForSigVerification,
@@ -50,29 +47,24 @@ const transactionJSON = {
 
 function verifyTransaction(transactionJSON, realFilename) {
   const { vin, vout, version, locktime } = transactionJSON;
-  // const serializedTransactionData = serializeTransaction(transactionJSON);
-  // const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
-  // const reversedDoubledSHA256Trxn = reverseBytes(doubledSHA256Trxn);
-  // // Double SHA256 -> Reverse -> SHA256 for filename
-  // const filename = CryptoJS.SHA256(
-  //   CryptoJS.enc.Hex.parse(reversedDoubledSHA256Trxn)
-  // ).toString();
+  const serializedTransactionData = serializeTransaction(transactionJSON);
+  const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
+  const reversedDoubledSHA256Trxn = reverseBytes(doubledSHA256Trxn);
+  // Double SHA256 -> Reverse -> SHA256 for filename
+  const filename = CryptoJS.SHA256(
+    CryptoJS.enc.Hex.parse(reversedDoubledSHA256Trxn)
+  ).toString();
   // console.log("Filename:", filename);
 
-  // SERIALIZATION FOR SEGREGATED WITNESS NOT WORKING FOR NOW
-
-  // const segWitSerialized = serializeSegWitTransaction(transactionJSON);
-  // const segWitDoubledSHA256Trxn = doubleSHA256Hash(segWitSerialized);
-  // // console.log("Double SHA256:", segWitDoubledSHA256Trxn);
-  // const segWitReversedDoubledSHA256Trxn = reverseBytes(segWitDoubledSHA256Trxn);
-  // const segWitFilename = CryptoJS.SHA256(
-  //   CryptoJS.enc.Hex.parse(segWitReversedDoubledSHA256Trxn)
-  // ).toString();
-  // console.log("Seg Filename:", segWitFilename);
+  // SERIALIZATION FOR SEGREGATED WITNESS NOT INCLUDEDS MARKER,FLAG AND WITNESS
 
   let flag = false;
+  let value = 0;
   vin.forEach((input, index) => {
-    const { prevout, scriptsig, scriptsig_asm } = input;
+    const { prevout, scriptsig, scriptsig_asm, vout } = input;
+    if (vout === 0) {
+      value += prevout.value;
+    }
     if (input.prevout.scriptpubkey_type === "p2pkh") {
       let msgHash = msgHashForSigVerification(transactionJSON, index);
       msgHash = doubleSHA256Hash(msgHash);
@@ -109,51 +101,73 @@ function verifyTransaction(transactionJSON, realFilename) {
       return true;
     }
   });
-  return flag;
+  return { flag, doubledSHA256Trxn, value };
 }
 
-console.log("Verification result:", verifyTransaction(transactionJSON));
+// console.log("Verification result:", verifyTransaction(transactionJSON));
 
-// async function readTransactions() {
-//   const mempoolPath = "./mempool";
-//   fs.readdir(mempoolPath, (err, files) => {
-//     if (err) {
-//       console.error("Could not list the directory.", err);
-//       process.exit(1);
-//     }
-//     let fileVerifiedCount = 0;
-//     let invalidTransactionCount = 0;
-//     let startTimestamp = new Date().getTime();
-//     let endTimestamp = 0;
-//     files.forEach((file, index) => {
-//       const filePath = `${mempoolPath}/${file}`;
-//       fs.readFile(filePath, "utf8", (err, data) => {
-//         if (err) {
-//           console.error("Could not read the file.", err);
-//           return;
-//         }
-//         try {
-//           const transactionJSON = JSON.parse(data);
-//           const result = verifyTransaction(transactionJSON, file);
-//           if (result) {
-//             fileVerifiedCount++;
-//           } else {
-//             // console.log("Transaction is invalid:", filePath);
-//             invalidTransactionCount++;
-//           }
-//           if (index === files.length - 1) {
-//             endTimestamp = new Date().getTime();
-//             let elapsedTime = endTimestamp - startTimestamp;
-//             console.log("Verified files count:", fileVerifiedCount);
-//             console.log("Invalid transactions count:", invalidTransactionCount);
-//             console.log("Elapsed time in minutes:", elapsedTime / 60000);
-//           }
-//         } catch (e) {
-//           console.error("Error parsing JSON", e);
-//         }
-//       });
-//     });
-//   });
-// }
+export async function readTransactions() {
+  const mempoolPath = "./mempool";
+  const txids = [];
+  const validTxids = [];
+  let totalValue = 0;
 
-// await readTransactions();
+  return new Promise((resolve, reject) => {
+    fs.readdir(mempoolPath, (err, files) => {
+      if (err) {
+        console.error("Could not list the directory.", err);
+        reject(err);
+        return;
+      }
+
+      let fileVerifiedCount = 0;
+      let invalidTransactionCount = 0;
+      let startTimestamp = new Date().getTime();
+      let endTimestamp = 0;
+      let processedFiles = 0;
+
+      files.forEach((file, index) => {
+        const filePath = `${mempoolPath}/${file}`;
+        fs.readFile(filePath, "utf8", (err, data) => {
+          if (err) {
+            console.error("Could not read the file.", err);
+            processedFiles++;
+            if (processedFiles === files.length) {
+              resolve(txids, totalValue);
+            }
+            return;
+          }
+          try {
+            const transactionJSON = JSON.parse(data);
+            const { flag, doubledSHA256Trxn, value } = verifyTransaction(
+              transactionJSON,
+              file
+            );
+            totalValue += value;
+            txids.push(doubledSHA256Trxn);
+            if (flag) {
+              fileVerifiedCount++;
+              validTxids.push(doubledSHA256Trxn);
+            } else {
+              invalidTransactionCount++;
+            }
+            processedFiles++;
+            if (processedFiles === files.length) {
+              endTimestamp = new Date().getTime();
+              let elapsedTime = endTimestamp - startTimestamp;
+              resolve({ txids, totalValue, validTxids });
+            }
+          } catch (e) {
+            console.error("Error parsing JSON", e);
+            processedFiles++;
+            if (processedFiles === files.length) {
+              resolve({ txids, totalValue });
+            }
+          }
+        });
+      });
+    });
+  });
+}
+
+await readTransactions();
