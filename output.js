@@ -17,7 +17,7 @@ async function createBlock() {
   let nonce = "00000000";
   // Maybe error here our target should be lower than this
 
-  const bits = "1d00ffff";
+  let bits = "00000000";
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   // console.log("Block Header: ", blockHeader, blockHeader.length);
@@ -40,11 +40,22 @@ async function createBlock() {
     blockHeader =
       version + previousBlockHash + merkleRoot + time + bits + nonce;
     blockhash = doubleSHA256Hash(blockHeader);
+
+    let roughPrecision=""
+    for (let i = 0; i < blockhash.length; i++) {
+      if (blockhash[i+1] !== "0") {
+        roughPrecision = blockhash.slice(i, i + 6);
+        bits= `${Math.floor((64-i)/2)}${roughPrecision}`
+        break;
+      }
+    }    
+    
     c++;
   }
 
+  // console.log("Header: ", blockHeader);
   // console.log("Block Hash: ", blockhash);
-  // console.log("header: ", blockHeader);
+  // console.log("bits: ", bits);
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
