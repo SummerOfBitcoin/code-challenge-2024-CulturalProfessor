@@ -21,35 +21,48 @@ async function createBlock() {
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   let blockhash = doubleSHA256Hash(blockHeader);
   let c = 0;
+  let flag = false;
   // console.log("Header: ", blockHeader);
   // console.log("Block Hash: ", blockhash);
-  while (
-    BigInt("0x" + blockhash) >
-    BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
-  ) {
+  do {
     nonce = Math.floor(Math.random() * 4294967295)
       .toString(16)
       .padStart(8, "0");
-    blockHeader =
-      version + previousBlockHash + merkleRoot + time + bits + nonce;
-    blockhash = doubleSHA256Hash(blockHeader);
 
-    let roughPrecision = "";
+    blockhash = doubleSHA256Hash(blockHeader);
+    let roughPrecision = "000000";
     for (let i = 0; i < blockhash.length; i++) {
-      if (blockhash[i + 1] !== "0") {
+      if (blockhash[i+1] !== "0") {
         roughPrecision = blockhash.slice(i, i + 6);
-        bits = `${(Math.floor((64 - i) / 2)).toString(16)}${roughPrecision}`;
+        bits = `${Math.floor((64 - i) / 2).toString(16)}${roughPrecision}`;
         break;
       }
     }
-    c++;
-  }
 
-  blockHeader = version + previousBlockHash + merkleRoot + time + bits + nonce;
+    blockHeader =
+      version + previousBlockHash + merkleRoot + time + bits + nonce;
+    c++;
+  } while (
+    BigInt("0x" + blockhash) >
+    BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
+  );
+
   // console.log("Block hash is greater than target", c);
   // console.log("Header: ", blockHeader);
   // console.log("Block Hash: ", blockhash);
   // console.log("bits: ", bits);
+  // console.log(
+  //   BigInt("0x" + blockhash),
+  //   BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
+  // );
+  // if (
+  //   BigInt("0x" + blockhash) <
+  //   BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
+  // ) {
+  //   console.log("Block hash is less than target");
+  // } else {
+  //   console.log("Block hash is greater than target");
+  // }
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
@@ -74,7 +87,7 @@ async function createBlock() {
 
   const endTime = Date.now(); // Record the end time
   const executionTime = (endTime - startTime) / 60000; // Calculate execution time in seconds
-  console.log(`Execution time: ${executionTime} Minutes`);
+  // console.log(`Execution time: ${executionTime} Minutes`);
 }
 
 async function createMerkleRoot() {
