@@ -28,15 +28,23 @@ async function createBlock() {
   // 26008872543971271528331265717745458250338554625754332728821881862605241600316
 
   let blockhash = doubleSHA256Hash(blockHeader);
-
-  while(BigInt("0x"+blockhash) > 26008872543971271528331265717745458250338554625754332728821881862605241600316n){
-    // console.log("Block hash is greater than target");
-    nonce = Math.floor(Math.random() * 4294967295).toString(16).padStart(8, "0");
-    blockHeader = version + previousBlockHash + merkleRoot + time + bits + nonce;
+  let c = 0;
+  while (
+    BigInt("0x" + blockhash) >
+    BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
+  ) {
+    // console.log("Block hash is greater than target", c);
+    nonce = Math.floor(Math.random() * 4294967295)
+      .toString(16)
+      .padStart(8, "0");
+    blockHeader =
+      version + previousBlockHash + merkleRoot + time + bits + nonce;
     blockhash = doubleSHA256Hash(blockHeader);
+    c++;
   }
 
   // console.log("Block Hash: ", blockhash);
+  // console.log("header: ", blockHeader);
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
