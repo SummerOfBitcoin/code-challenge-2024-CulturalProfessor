@@ -98,7 +98,7 @@ function verifyTransaction(transactionJSON, realFilename) {
     } else if (input.prevout.scriptpubkey_type === "p2ms") {
       return false;
     } else if (input.prevout.scriptpubkey_type === "v1_p2tr") {
-      flag = true;
+      // flag = true;
       return true;
     }
   });

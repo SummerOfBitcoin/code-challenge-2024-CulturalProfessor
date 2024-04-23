@@ -5,35 +5,28 @@ import { doubleSHA256Hash } from "./utils.js";
 import { serializeSegWitTransactionForWTXID } from "./serialize.js";
 
 async function createBlock() {
+  const startTime = Date.now(); // Record the start time
+
   const version = "00000020";
-  // 32 bytes
   const previousBlockHash = "00".repeat(32);
   const time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  // console.log("Time: ", time);
   const { merkleRoot, totalValue, validTxids } = await createMerkleRoot();
 
   let nonce = "00000000";
-  // Maybe error here our target should be lower than this
 
   let bits = "00000000";
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
-  // console.log("Block Header: ", blockHeader, blockHeader.length);
-  // blockhash = doubleSHA256Hash(blockHeader);
-  // 4262944507652438202757495313951717853240532272612529385745411476082174135379
-
-  //Expected
-  // 26008872543971271528331265717745458250338554625754332728821881862605241600316
-
   let blockhash = doubleSHA256Hash(blockHeader);
   let c = 0;
+  console.log("Header: ", blockHeader);
+  console.log("Block Hash: ", blockhash);
   while (
     BigInt("0x" + blockhash) >
     BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   ) {
-    // console.log("Block hash is greater than target", c);
     nonce = Math.floor(Math.random() * 4294967295)
       .toString(16)
       .padStart(8, "0");
@@ -41,21 +34,21 @@ async function createBlock() {
       version + previousBlockHash + merkleRoot + time + bits + nonce;
     blockhash = doubleSHA256Hash(blockHeader);
 
-    let roughPrecision=""
+    let roughPrecision = "";
     for (let i = 0; i < blockhash.length; i++) {
-      if (blockhash[i+1] !== "0") {
+      if (blockhash[i + 1] !== "0") {
         roughPrecision = blockhash.slice(i, i + 6);
-        bits= `${Math.floor((64-i)/2)}${roughPrecision}`
+        bits = `${(Math.floor((64 - i) / 2)).toString(16)}${roughPrecision}`;
         break;
       }
-    }    
-    
+    }
     c++;
   }
 
-  // console.log("Header: ", blockHeader);
-  // console.log("Block Hash: ", blockhash);
-  // console.log("bits: ", bits);
+  console.log("Block hash is greater than target", c);
+  console.log("Header: ", blockHeader);
+  console.log("Block Hash: ", blockhash);
+  console.log("bits: ", bits);
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
@@ -77,6 +70,10 @@ async function createBlock() {
   blockValues.forEach((element) => {
     fs.writeFileSync(`./output.txt`, element + "\n", { flag: "a" });
   });
+
+  const endTime = Date.now(); // Record the end time
+  const executionTime = (endTime - startTime) / 60000; // Calculate execution time in seconds
+  console.log(`Execution time: ${executionTime} Minutes`);
 }
 
 async function createMerkleRoot() {
