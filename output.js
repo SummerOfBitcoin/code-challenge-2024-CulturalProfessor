@@ -8,18 +8,35 @@ async function createBlock() {
   const version = "00000020";
   // 32 bytes
   const previousBlockHash = "00".repeat(32);
-  const { merkleRoot, totalValue, validTxids } = await createMerkleRoot();
   const time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  const nonce = "00000000";
+  // console.log("Time: ", time);
+  const { merkleRoot, totalValue, validTxids } = await createMerkleRoot();
+
+  let nonce = "00000000";
   // Maybe error here our target should be lower than this
 
   const bits = "1d00ffff";
-  const blockHeader =
+  let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
-    // console.log("Block Header: ", blockHeader);
-    
+  // console.log("Block Header: ", blockHeader, blockHeader.length);
+  // blockhash = doubleSHA256Hash(blockHeader);
+  // 4262944507652438202757495313951717853240532272612529385745411476082174135379
+
+  //Expected
+  // 26008872543971271528331265717745458250338554625754332728821881862605241600316
+
+  let blockhash = doubleSHA256Hash(blockHeader);
+
+  while(BigInt("0x"+blockhash) > 26008872543971271528331265717745458250338554625754332728821881862605241600316n){
+    // console.log("Block hash is greater than target");
+    nonce = Math.floor(Math.random() * 4294967295).toString(16).padStart(8, "0");
+    blockHeader = version + previousBlockHash + merkleRoot + time + bits + nonce;
+    blockhash = doubleSHA256Hash(blockHeader);
+  }
+
+  // console.log("Block Hash: ", blockhash);
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
@@ -47,17 +64,24 @@ async function createMerkleRoot() {
   const { txids, totalValue, validTxids } = await readTransactions();
 
   let merkleTree = txids; // Initial list of txids
+
+  // Ensure an even number of transaction IDs by duplicating the last ID if needed
+  if (merkleTree.length % 2 === 1) {
+    merkleTree.push(merkleTree[merkleTree.length - 1]);
+  }
+
   while (merkleTree.length > 1) {
     let level = [];
     for (let i = 0; i < merkleTree.length; i += 2) {
       let left = merkleTree[i];
-      let right = i + 1 === merkleTree.length ? left : merkleTree[i + 1];
+      let right = merkleTree[i + 1];
       let concat = left + right;
       let hash = doubleSHA256Hash(concat);
       level.push(hash);
     }
     merkleTree = level;
   }
+
   return {
     merkleRoot: merkleTree[0],
     totalValue: totalValue,
@@ -87,7 +111,7 @@ function createCoinbaseTransaction(totalValue) {
       {
         scriptpubkey: "0014a171823325dbad4dbdc558b29f1778eedff066de",
         scriptpubkey_asm:
-        "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
+          "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
         scriptpubkey_type: "p2wpkh",
         scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
         value: totalValue,
