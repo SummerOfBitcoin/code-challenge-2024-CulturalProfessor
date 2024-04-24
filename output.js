@@ -1,13 +1,13 @@
 import { readTransactions } from "./index.js";
 import fs from "fs";
 import CryptoJS from "crypto-js";
-import { doubleSHA256Hash } from "./utils.js";
+import { doubleSHA256Hash, reverseBytes } from "./utils.js";
 import { serializeSegWitTransactionForWTXID } from "./serialize.js";
 
 async function createBlock() {
   const startTime = Date.now(); // Record the start time
 
-  const version = "00000020";
+  const version = "00000001";
   const previousBlockHash = "00".repeat(32);
   const time = Math.floor(Date.now() / 1000)
     .toString(16)
@@ -27,8 +27,9 @@ async function createBlock() {
     nonce = Math.floor(Math.random() * 4294967295)
       .toString(16)
       .padStart(8, "0");
-    blockHeader =
-      version + previousBlockHash + merkleRoot + time + bits + nonce;
+    blockHeader = `${version}${previousBlockHash}${reverseBytes(
+      merkleRoot
+    )}${reverseBytes(time)}${bits}${reverseBytes(nonce)}`;
 
     c++;
     // console.log(c)
