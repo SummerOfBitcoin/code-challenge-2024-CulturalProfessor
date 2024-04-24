@@ -30,16 +30,13 @@ async function createBlock() {
     blockHeader = `${version}${previousBlockHash}${reverseBytes(
       merkleRoot
     )}${reverseBytes(time)}${bits}${reverseBytes(nonce)}`;
-
-    c++;
-    // console.log(c)
   } while (
-    BigInt("0x" + doubleSHA256Hash(blockHeader)) >
+    BigInt("0x" + reverseBytes(doubleSHA256Hash(blockHeader))) >
     BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   );
 
   // console.log("Block hash is greater than target", c);
-  // console.log("Header: ", blockHeader,blockHeader.length);
+  // console.log("Header: ", blockHeader, blockHeader.length);
   // console.log("Block Hash: ", doubleSHA256Hash(blockHeader));
   // console.log("bits: ", bits);
   // console.log(
