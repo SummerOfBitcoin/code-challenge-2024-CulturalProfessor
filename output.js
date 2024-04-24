@@ -16,10 +16,9 @@ async function createBlock() {
 
   let nonce = "00000000";
 
-  let bits = "00000000";
+  let bits = "1f00ffff";
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
-  let blockhash = doubleSHA256Hash(blockHeader);
   let c = 0;
   let flag = false;
   // console.log("Header: ", blockHeader);
@@ -28,35 +27,26 @@ async function createBlock() {
     nonce = Math.floor(Math.random() * 4294967295)
       .toString(16)
       .padStart(8, "0");
-
-    blockhash = doubleSHA256Hash(blockHeader);
-    let roughPrecision = "000000";
-    for (let i = 0; i < blockhash.length; i++) {
-      if (blockhash[i+1] !== "0") {
-        roughPrecision = blockhash.slice(i, i + 6);
-        bits = `${Math.floor((64 - i) / 2).toString(16)}${roughPrecision}`;
-        break;
-      }
-    }
-
     blockHeader =
       version + previousBlockHash + merkleRoot + time + bits + nonce;
+
     c++;
+    // console.log(c)
   } while (
-    BigInt("0x" + blockhash) >
+    BigInt("0x" + doubleSHA256Hash(blockHeader)) >
     BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   );
 
   // console.log("Block hash is greater than target", c);
   // console.log("Header: ", blockHeader);
-  // console.log("Block Hash: ", blockhash);
+  // console.log("Block Hash: ", doubleSHA256Hash(blockHeader));
   // console.log("bits: ", bits);
   // console.log(
-  //   BigInt("0x" + blockhash),
+  //   BigInt("0x" + doubleSHA256Hash(blockHeader)),
   //   BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   // );
   // if (
-  //   BigInt("0x" + blockhash) <
+  //   BigInt("0x" + doubleSHA256Hash(blockHeader)) <
   //   BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   // ) {
   //   console.log("Block hash is less than target");
