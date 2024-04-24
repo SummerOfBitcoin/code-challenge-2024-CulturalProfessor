@@ -16,7 +16,7 @@ async function createBlock() {
 
   let nonce = "00000000";
 
-  let bits = "1f00ffff";
+  let bits = "ffff001f";
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   let c = 0;
@@ -38,7 +38,7 @@ async function createBlock() {
   );
 
   // console.log("Block hash is greater than target", c);
-  // console.log("Header: ", blockHeader);
+  // console.log("Header: ", blockHeader,blockHeader.length);
   // console.log("Block Hash: ", doubleSHA256Hash(blockHeader));
   // console.log("bits: ", bits);
   // console.log(
