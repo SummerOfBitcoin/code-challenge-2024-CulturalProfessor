@@ -90,6 +90,10 @@ async function getTXIDS() {
 async function createMerkleRoot() {
   let { totalValue, validTxids } = await readTransactions();
   const txids = await getTXIDS();
+  const coinbaseTransaction = createCoinbaseTransaction(totalValue);
+  const serializedCoinbase = serializeTransaction(coinbaseTransaction);
+  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
+  txids.unshift(coinbaseTxid);
 
   fs.writeFileSync("./txid.txt", "", { flag: "w" });
 
