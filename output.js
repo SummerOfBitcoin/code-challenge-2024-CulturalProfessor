@@ -52,7 +52,7 @@ async function createBlock() {
   let c = 0;
 
   // console.log("Merkle Root: ", merkleRoot);
-  merkleRoot = reverseBytes(merkleRoot);
+  // merkleRoot = reverseBytes(merkleRoot);
   // console.log("Merkle Root: ", merkleRoot);
 
   // console.log("Serialed", coinbaseTransaction);
