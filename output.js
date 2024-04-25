@@ -22,16 +22,27 @@ async function createBlock() {
     .toString(16)
     .padStart(8, "0");
   let { totalValue, validTxids } = await readTransactions();
-  const txids = await getTXIDS();
-  let { merkleRoot } = await createMerkleRoot(txids);
   const wtxids = await getWTXIDS();
-
   let { witnessRootHash } = await createMerkleRoot(wtxids);
   let witnessReservedValue =
     "0000000000000000000000000000000000000000000000000000000000000000";
+
+  const txids = await getTXIDS();
   const witnessCommitment = `aa21a9ed${doubleSHA256Hash(
     `${witnessReservedValue}${witnessRootHash}`
   )}`;
+  const coinbaseTransaction = createCoinbaseTransaction(
+    totalValue,
+    witnessCommitment
+  );
+  const serializedCoinbase = serializeTransaction(coinbaseTransaction);
+  // console.log("Coinbase Transaction: ", serializedCoinbase);
+  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
+  validTxids.unshift(coinbaseTxid);
+  txids.unshift(coinbaseTxid);
+  // console.log("Coinbase TXID: ", coinbaseTxid);
+  let { merkleRoot } = await createMerkleRoot(txids);
+
   let nonce = "00000000";
   let bits = "ffff001f";
   let blockHeader =
@@ -53,16 +64,6 @@ async function createBlock() {
     BigInt("0x" + reverseBytes(doubleSHA256Hash(blockHeader))) >
     BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   );
-
-  const coinbaseTransaction = createCoinbaseTransaction(
-    totalValue,
-    witnessCommitment
-  );
-  const serializedCoinbase = serializeTransaction(coinbaseTransaction);
-  // console.log("Coinbase Transaction: ", serializedCoinbase);
-  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
-  validTxids.unshift(coinbaseTxid);
-  console.log("Coinbase TXID: ", coinbaseTxid);
 
   const block = {
     blockHeader: blockHeader,
