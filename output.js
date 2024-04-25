@@ -38,9 +38,11 @@ async function createBlock() {
     totalValue,
     witnessCommitment
   );
-  const serializedCoinbase = serializeTransaction(coinbaseTransaction);
+  // const serializedCoinbase = serializeTransaction(coinbaseTransaction);
+  const serializedCoinbase =
+    "010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f6994e7c260000001976a914edf10a7fac6b32e24daa5305c723f3de58db1bc888ac0000000000000000266a24aa21a9ed7246abf6b5c293ff2883fdefdd5faed5680495069d8cb700761c35f18f477af40120000000000000000000000000000000000000000000000000000000000000000000000000";
   // console.log("Coinbase Transaction: ", serializedCoinbase);
-  const coinbaseTxid = doubleSHA256Hash("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f6994e7c260000001976a914edf10a7fac6b32e24daa5305c723f3de58db1bc888ac0000000000000000266a24aa21a9ed7246abf6b5c293ff2883fdefdd5faed5680495069d8cb700761c35f18f477af40120000000000000000000000000000000000000000000000000000000000000000000000000");
+  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
   validTxids.unshift(coinbaseTxid);
   txids.unshift(coinbaseTxid);
   // console.log("Coinbase TXID: ", coinbaseTxid);
@@ -48,12 +50,13 @@ async function createBlock() {
   let nonce = "00000000";
   let bits = "ffff001f";
   let blockHeader =
-    version + previousBlockHash + merkleRoot + time + bits + nonce;coinbaseTransaction
+    version + previousBlockHash + merkleRoot + time + bits + nonce;
+  coinbaseTransaction;
   let c = 0;
 
-  // console.log("Merkle Root: ", merkleRoot);
-  // merkleRoot = reverseBytes(merkleRoot);
-  // console.log("Merkle Root: ", merkleRoot);
+  console.log("Merkle Root: ", merkleRoot);
+  merkleRoot = reverseBytes(merkleRoot);
+  console.log("Merkle Root: ", merkleRoot);
 
   // console.log("Serialed", coinbaseTransaction);
   time = reverseBytes(time);
