@@ -89,45 +89,45 @@ export async function getWTXIDS() {
   return txids;
 }
 
-export function createCoinbaseTransaction(totalValue, witnessCommitment) {
-  const coinbaseTransaction = {
-    version: 2,
-    locktime: 0,
-    vin: [
-      {
-        txid: "0000000000000000000000000000000000000000000000000000000000000000",
-        vout: 4294967295,
-        scriptsig: "",
-        scriptsig_asm: "",
-        witness: [
-          "304402201c91da3c6363ae4ae824fac90bcc5044e17a619e09eddcfe4fe3b3b547c4da7f02206ef0112cdd3e1516fa4ec285b1343c151a3337622da1d5c5da272bedeb25660501",
-          "03610ec7abcea7ca2b42974cebb42c24ed1943493e94f5b7bc6d8352e308fbf268",
-        ],
-        is_coinbase: true,
-        sequence: "ffffffff",
-      },
-    ],
-    vout: [
-      {
-        scriptpubkey_type: "p2pkh",
-        scriptpubkey_address: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-        scriptpubkey: "76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac",
-        scriptpubkey_asm:
-          "OP_DUP OP_HASH160 OP_PUSHBYTES_20 62e907b15cbf27d5425399ebf6f0fb50ebb88f18 OP_EQUALVERIFY OP_CHECKSIG",
-        value: totalValue,
-      },
-      {
-        scriptpubkey: witnessCommitment,
-        scriptpubkey_asm:
-          "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
-        scriptpubkey_type: "p2wpkh",
-        scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
-        value: 0,
-      },
-    ],
-  };
-  return coinbaseTransaction;
-}
+// export function createCoinbaseTransaction(totalValue, witnessCommitment) {
+//   const coinbaseTransaction = {
+//     version: 2,
+//     locktime: 0,
+//     vin: [
+//       {
+//         txid: "0000000000000000000000000000000000000000000000000000000000000000",
+//         vout: 4294967295,
+//         scriptsig: "",
+//         scriptsig_asm: "",
+//         witness: [
+//           "304402201c91da3c6363ae4ae824fac90bcc5044e17a619e09eddcfe4fe3b3b547c4da7f02206ef0112cdd3e1516fa4ec285b1343c151a3337622da1d5c5da272bedeb25660501",
+//           "03610ec7abcea7ca2b42974cebb42c24ed1943493e94f5b7bc6d8352e308fbf268",
+//         ],
+//         is_coinbase: true,
+//         sequence: "ffffffff",
+//       },
+//     ],
+//     vout: [
+//       {
+//         scriptpubkey_type: "p2pkh",
+//         scriptpubkey_address: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
+//         scriptpubkey: "76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac",
+//         scriptpubkey_asm:
+//           "OP_DUP OP_HASH160 OP_PUSHBYTES_20 62e907b15cbf27d5425399ebf6f0fb50ebb88f18 OP_EQUALVERIFY OP_CHECKSIG",
+//         value: totalValue,
+//       },
+//       {
+//         scriptpubkey: witnessCommitment,
+//         scriptpubkey_asm:
+//           "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
+//         scriptpubkey_type: "p2wpkh",
+//         scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
+//         value: 0,
+//       },
+//     ],
+//   };
+//   return coinbaseTransaction;
+// }
 
 export async function createMerkleRoot(txids) {
   try {
