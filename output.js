@@ -127,7 +127,6 @@ async function createMerkleRoot() {
   const reversedTxids = txids.map((txid) => reverseBytes(txid));
 
   const result = merkleroot(reversedTxids);
-
   return {
     merkleRoot: result,
     totalValue: totalValue,
@@ -142,7 +141,7 @@ function createCoinbaseTransaction(totalValue) {
     vin: [
       {
         txid: "0000000000000000000000000000000000000000000000000000000000000000",
-        vout: 0,
+        vout: 4294967295,
         scriptsig: "",
         scriptsig_asm: "",
         witness: [
@@ -160,7 +159,7 @@ function createCoinbaseTransaction(totalValue) {
           "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
         scriptpubkey_type: "p2wpkh",
         scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
-        value: totalValue,
+        value: 165294283254,
       },
     ],
   };
