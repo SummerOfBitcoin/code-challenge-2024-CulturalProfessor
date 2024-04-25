@@ -40,10 +40,9 @@ async function createBlock() {
   );
 
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
-  const serializedCoinbase =
-    serializeSegWitTransactionForWTXID(coinbaseTransaction);
-  const wtxid = doubleSHA256Hash(serializedCoinbase);
-  validTxids.unshift(wtxid);
+  const serializedCoinbase = serializeTransaction(coinbaseTransaction);
+  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
+  validTxids.unshift(coinbaseTxid);
 
   const block = {
     blockHeader: blockHeader,
