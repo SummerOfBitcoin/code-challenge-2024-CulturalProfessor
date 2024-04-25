@@ -1,8 +1,10 @@
 import { readTransactions } from "./index.js";
 import fs from "fs";
-import CryptoJS from "crypto-js";
 import { doubleSHA256Hash, reverseBytes } from "./utils.js";
-import { serializeSegWitTransactionForWTXID } from "./serialize.js";
+import {
+  serializeSegWitTransactionForWTXID,
+  serializeTransaction,
+} from "./serialize.js";
 
 async function createBlock() {
   const startTime = Date.now(); // Record the start time
@@ -21,9 +23,9 @@ async function createBlock() {
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   let c = 0;
 
-  // console.log("Merkle Root: ", merkleRoot);
-  // // merkleRoot = reverseBytes(merkleRoot);
-  // console.log("Merkle Root: ", merkleRoot);
+  console.log("Merkle Root: ", merkleRoot);
+  merkleRoot = reverseBytes(merkleRoot);
+  console.log("Merkle Root: ", merkleRoot);
 
   time = reverseBytes(time);
   do {
@@ -64,10 +66,36 @@ async function createBlock() {
   // console.log(`Execution time: ${executionTime} Minutes`);
 }
 
-async function createMerkleRoot() {
-  let { txids, totalValue, validTxids } = await readTransactions();
-  txids = ["0f3809f044c0139f4995d49c755098dee9bf597e491c19f1c330ba339c7bdbd4"];
+async function getTXIDS() {
+  const mempoolPath = "./mempool";
+  const txids = [];
+  const files = await fs.promises.readdir(mempoolPath);
 
+  for (const file of files) {
+    const filePath = `${mempoolPath}/${file}`;
+    try {
+      const data = await fs.promises.readFile(filePath, "utf8");
+      const transactionJSON = JSON.parse(data);
+      const serializedTransactionData = serializeTransaction(transactionJSON);
+      const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
+      txids.push(doubledSHA256Trxn);
+    } catch (e) {
+      console.error("Error processing file:", filePath, e);
+    }
+  }
+
+  return txids;
+}
+
+async function createMerkleRoot() {
+  let { totalValue, validTxids } = await readTransactions();
+  const txids = await getTXIDS();
+
+  fs.writeFileSync("./txid.txt", "", { flag: "w" });
+
+  txids.forEach((element) => {
+    fs.writeFileSync(`./txid.txt`, element + "\n", { flag: "a" });
+  });
   function merkleroot(txids) {
     // Exit Condition: Stop recursion when we have one hash result left
     if (txids.length === 1) {
@@ -93,9 +121,7 @@ async function createMerkleRoot() {
     return merkleroot(result);
   }
 
-  const reversedTxids = txids.map((txid) =>
-    txid.match(/../g).reverse().join("")
-  );
+  const reversedTxids = txids.map((txid) => reverseBytes(txid));
 
   const result = merkleroot(reversedTxids);
 

@@ -49,11 +49,11 @@ function verifyTransaction(transactionJSON, realFilename) {
   const { vin, vout, version, locktime } = transactionJSON;
   const serializedTransactionData = serializeTransaction(transactionJSON);
   const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
-  const reversedDoubledSHA256Trxn = reverseBytes(doubledSHA256Trxn);
+  // const reversedDoubledSHA256Trxn = reverseBytes(doubledSHA256Trxn);
   // Double SHA256 -> Reverse -> SHA256 for filename
-  const filename = CryptoJS.SHA256(
-    CryptoJS.enc.Hex.parse(reversedDoubledSHA256Trxn)
-  ).toString();
+  // const filename = CryptoJS.SHA256(
+  //   CryptoJS.enc.Hex.parse(reversedDoubledSHA256Trxn)
+  // ).toString();
   // console.log("Filename:", filename);
 
   // SERIALIZATION FOR SEGREGATED WITNESS NOT INCLUDEDS MARKER,FLAG AND WITNESS
@@ -109,7 +109,6 @@ function verifyTransaction(transactionJSON, realFilename) {
 
 export async function readTransactions() {
   const mempoolPath = "./mempool";
-  const txids = [];
   const validTxids = [];
   let totalValue = 0;
 
@@ -145,7 +144,6 @@ export async function readTransactions() {
               file
             );
             totalValue += value;
-            txids.push(doubledSHA256Trxn);
             if (flag) {
               fileVerifiedCount++;
               validTxids.push(doubledSHA256Trxn);
@@ -156,13 +154,13 @@ export async function readTransactions() {
             if (processedFiles === files.length) {
               endTimestamp = new Date().getTime();
               let elapsedTime = endTimestamp - startTimestamp;
-              resolve({ txids, totalValue, validTxids });
+              resolve({ totalValue, validTxids });
             }
           } catch (e) {
             console.error("Error parsing JSON", e);
             processedFiles++;
             if (processedFiles === files.length) {
-              resolve({ txids, totalValue });
+              resolve({ totalValue });
             }
           }
         });
