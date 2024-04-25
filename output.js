@@ -22,9 +22,9 @@ async function createBlock() {
   let c = 0;
 
   // console.log("Merkle Root: ", merkleRoot);
-  merkleRoot = reverseBytes(merkleRoot);
+  // // merkleRoot = reverseBytes(merkleRoot);
   // console.log("Merkle Root: ", merkleRoot);
-  
+
   time = reverseBytes(time);
   do {
     nonce = Math.floor(Math.random() * 4294967295)
@@ -66,6 +66,7 @@ async function createBlock() {
 
 async function createMerkleRoot() {
   let { txids, totalValue, validTxids } = await readTransactions();
+  txids = ["0f3809f044c0139f4995d49c755098dee9bf597e491c19f1c330ba339c7bdbd4"];
 
   function merkleroot(txids) {
     // Exit Condition: Stop recursion when we have one hash result left
