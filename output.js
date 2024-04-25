@@ -23,9 +23,9 @@ async function createBlock() {
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   let c = 0;
 
-  console.log("Merkle Root: ", merkleRoot);
-  merkleRoot = reverseBytes(merkleRoot);
-  console.log("Merkle Root: ", merkleRoot);
+  // console.log("Merkle Root: ", merkleRoot);
+  // merkleRoot = reverseBytes(merkleRoot);
+  // console.log("Merkle Root: ", merkleRoot);
 
   time = reverseBytes(time);
   do {
