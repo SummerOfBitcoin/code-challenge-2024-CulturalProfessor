@@ -9,10 +9,10 @@ async function createBlock() {
 
   const version = "00000001";
   const previousBlockHash = "00".repeat(32);
-  const time = Math.floor(Date.now() / 1000)
+  let time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  const { merkleRoot, totalValue, validTxids } = await createMerkleRoot();
+  let { merkleRoot, totalValue, validTxids } = await createMerkleRoot();
 
   let nonce = "00000000";
 
@@ -20,37 +20,23 @@ async function createBlock() {
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   let c = 0;
-  let flag = false;
-  // console.log("Header: ", blockHeader);
-  // console.log("Block Hash: ", blockhash);
+
+  // console.log("Merkle Root: ", merkleRoot);
+  merkleRoot = reverseBytes(merkleRoot);
+  // console.log("Merkle Root: ", merkleRoot);
+  
+  time = reverseBytes(time);
   do {
     nonce = Math.floor(Math.random() * 4294967295)
       .toString(16)
       .padStart(8, "0");
-    blockHeader = `${version}${previousBlockHash}${reverseBytes(
-      merkleRoot
-    )}${reverseBytes(time)}${bits}${reverseBytes(nonce)}`;
+    nonce = reverseBytes(nonce);
+    blockHeader = `${version}${previousBlockHash}${merkleRoot}${time}${bits}${nonce}`;
   } while (
     BigInt("0x" + reverseBytes(doubleSHA256Hash(blockHeader))) >
     BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   );
 
-  // console.log("Block hash is greater than target", c);
-  // console.log("Header: ", blockHeader, blockHeader.length);
-  // console.log("Block Hash: ", doubleSHA256Hash(blockHeader));
-  // console.log("bits: ", bits);
-  // console.log(
-  //   BigInt("0x" + doubleSHA256Hash(blockHeader)),
-  //   BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
-  // );
-  // if (
-  //   BigInt("0x" + doubleSHA256Hash(blockHeader)) <
-  //   BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
-  // ) {
-  //   console.log("Block hash is less than target");
-  // } else {
-  //   console.log("Block hash is greater than target");
-  // }
   const coinbaseTransaction = createCoinbaseTransaction(totalValue);
   const serializedCoinbase =
     serializeSegWitTransactionForWTXID(coinbaseTransaction);
@@ -79,29 +65,41 @@ async function createBlock() {
 }
 
 async function createMerkleRoot() {
-  const { txids, totalValue, validTxids } = await readTransactions();
+  let { txids, totalValue, validTxids } = await readTransactions();
 
-  let merkleTree = txids; // Initial list of txids
-
-  // Ensure an even number of transaction IDs by duplicating the last ID if needed
-  if (merkleTree.length % 2 === 1) {
-    merkleTree.push(merkleTree[merkleTree.length - 1]);
-  }
-
-  while (merkleTree.length > 1) {
-    let level = [];
-    for (let i = 0; i < merkleTree.length; i += 2) {
-      let left = merkleTree[i];
-      let right = merkleTree[i + 1];
-      let concat = left + right;
-      let hash = doubleSHA256Hash(concat);
-      level.push(hash);
+  function merkleroot(txids) {
+    // Exit Condition: Stop recursion when we have one hash result left
+    if (txids.length === 1) {
+      // Convert the result to a string and return it
+      return txids[0];
     }
-    merkleTree = level;
+
+    // Keep an array of results
+    const result = [];
+
+    // Split up array of hashes into pairs
+    for (let i = 0; i < txids.length; i += 2) {
+      // Concatenate each pair
+      const one = txids[i];
+      const two = i + 1 < txids.length ? txids[i + 1] : one;
+      const concat = one + two;
+
+      // Hash the concatenated pair and add to results array
+      result.push(doubleSHA256Hash(concat));
+    }
+
+    // Recursion: Do the same thing again for these results
+    return merkleroot(result);
   }
+
+  const reversedTxids = txids.map((txid) =>
+    txid.match(/../g).reverse().join("")
+  );
+
+  const result = merkleroot(reversedTxids);
 
   return {
-    merkleRoot: merkleTree[0],
+    merkleRoot: result,
     totalValue: totalValue,
     validTxids: validTxids,
   };
