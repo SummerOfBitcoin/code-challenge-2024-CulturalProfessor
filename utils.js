@@ -132,6 +132,7 @@ export function createCoinbaseTransaction(totalValue, witnessCommitment) {
 export async function createMerkleRoot(txids) {
   try {
     // Calculate the Merkle root iteratively without recursion
+    txids = txids.map((txid) => reverseBytes(txid));
     while (txids.length > 1) {
       const result = [];
       for (let i = 0; i < txids.length; i += 2) {

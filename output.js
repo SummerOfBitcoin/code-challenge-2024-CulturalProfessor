@@ -42,7 +42,7 @@ async function createBlock() {
   txids.unshift(coinbaseTxid);
   // console.log("Coinbase TXID: ", coinbaseTxid);
   let { merkleRoot } = await createMerkleRoot(txids);
-
+  console.log("Merkle Root: ", merkleRoot);
   let nonce = "00000000";
   let bits = "ffff001f";
   let blockHeader =
