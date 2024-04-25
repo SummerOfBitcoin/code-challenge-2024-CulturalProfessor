@@ -1,6 +1,14 @@
 import { readTransactions } from "./index.js";
 import fs from "fs";
-import { doubleSHA256Hash, reverseBytes } from "./utils.js";
+import {
+  doubleSHA256Hash,
+  reverseBytes,
+  getTXIDS,
+  getWTXIDS,
+  createMerkleRoot,
+  createCoinbaseTransaction,
+  writeInFile,
+} from "./utils.js";
 import {
   serializeSegWitTransactionForWTXID,
   serializeTransaction,
@@ -8,23 +16,30 @@ import {
 
 async function createBlock() {
   const startTime = Date.now(); // Record the start time
-
   const version = "00000001";
   const previousBlockHash = "00".repeat(32);
   let time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  let { merkleRoot, totalValue, validTxids } = await createMerkleRoot();
+  let { totalValue, validTxids } = await readTransactions();
+  const txids = await getTXIDS();
+  let { merkleRoot } = await createMerkleRoot(txids);
+  const wtxids = await getWTXIDS();
 
+  let { witnessRootHash } = await createMerkleRoot(wtxids);
+  let witnessReservedValue =
+    "0000000000000000000000000000000000000000000000000000000000000000";
+  const witnessCommitment = `aa21a9ed${doubleSHA256Hash(
+    `${witnessReservedValue}${witnessRootHash}`
+  )}`;
   let nonce = "00000000";
-
   let bits = "ffff001f";
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
   let c = 0;
 
   // console.log("Merkle Root: ", merkleRoot);
-  // merkleRoot = reverseBytes(merkleRoot);
+  merkleRoot = reverseBytes(merkleRoot);
   // console.log("Merkle Root: ", merkleRoot);
 
   time = reverseBytes(time);
@@ -39,10 +54,15 @@ async function createBlock() {
     BigInt("0x0000ffff00000000000000000000000000000000000000000000000000000000")
   );
 
-  const coinbaseTransaction = createCoinbaseTransaction(totalValue);
+  const coinbaseTransaction = createCoinbaseTransaction(
+    totalValue,
+    witnessCommitment
+  );
   const serializedCoinbase = serializeTransaction(coinbaseTransaction);
+  // console.log("Coinbase Transaction: ", serializedCoinbase);
   const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
   validTxids.unshift(coinbaseTxid);
+  console.log("Coinbase TXID: ", coinbaseTxid);
 
   const block = {
     blockHeader: blockHeader,
@@ -54,116 +74,13 @@ async function createBlock() {
     Array.isArray(value) ? value : [value]
   );
 
-  fs.writeFileSync("./output.txt", "", { flag: "w" });
+  writeInFile("./output.txt", blockValues);
+  writeInFile("./txid.txt", txids);
+  writeInFile("./wtxid.txt", wtxids);
 
-  blockValues.forEach((element) => {
-    fs.writeFileSync(`./output.txt`, element + "\n", { flag: "a" });
-  });
-
-  const endTime = Date.now(); // Record the end time
-  const executionTime = (endTime - startTime) / 60000; // Calculate execution time in seconds
+  const endTime = Date.now();
+  const executionTime = (endTime - startTime) / 60000;
   // console.log(`Execution time: ${executionTime} Minutes`);
-}
-
-async function getTXIDS() {
-  const mempoolPath = "./mempool";
-  const txids = [];
-  const files = await fs.promises.readdir(mempoolPath);
-
-  for (const file of files) {
-    const filePath = `${mempoolPath}/${file}`;
-    try {
-      const data = await fs.promises.readFile(filePath, "utf8");
-      const transactionJSON = JSON.parse(data);
-      const serializedTransactionData = serializeTransaction(transactionJSON);
-      const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
-      txids.push(doubledSHA256Trxn);
-    } catch (e) {
-      console.error("Error processing file:", filePath, e);
-    }
-  }
-
-  return txids;
-}
-
-async function createMerkleRoot() {
-  let { totalValue, validTxids } = await readTransactions();
-  const txids = await getTXIDS();
-  // const coinbaseTransaction = createCoinbaseTransaction(totalValue);
-  // const serializedCoinbase = serializeTransaction(coinbaseTransaction);0
-  const coinbaseTxid = doubleSHA256Hash("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f595814a000000001976a914edf10a7fac6b32e24daa5305c723f3de58db1bc888ac0000000000000000266a24aa21a9edfaa194df59043645ba0f58aad74bfd5693fa497093174d12a4bb3b0574a878db0120000000000000000000000000000000000000000000000000000000000000000000000000");
-  txids.unshift(coinbaseTxid);
-
-  fs.writeFileSync("./txid.txt", "", { flag: "w" });
-
-  txids.forEach((element) => {
-    fs.writeFileSync(`./txid.txt`, element + "\n", { flag: "a" });
-  });
-  function merkleroot(txids) {
-    // Exit Condition: Stop recursion when we have one hash result left
-    if (txids.length === 1) {
-      // Convert the result to a string and return it
-      return txids[0];
-    }
-
-    // Keep an array of results
-    const result = [];
-
-    // Split up array of hashes into pairs
-    for (let i = 0; i < txids.length; i += 2) {
-      // Concatenate each pair
-      const one = txids[i];
-      const two = i + 1 < txids.length ? txids[i + 1] : one;
-      const concat = one + two;
-
-      // Hash the concatenated pair and add to results array
-      result.push(doubleSHA256Hash(concat));
-    }
-
-    // Recursion: Do the same thing again for these results
-    return merkleroot(result);
-  }
-
-  const reversedTxids = txids.map((txid) => reverseBytes(txid));
-
-  const result = merkleroot(reversedTxids);
-  return {
-    merkleRoot: result,
-    totalValue: totalValue,
-    validTxids: validTxids,
-  };
-}
-
-function createCoinbaseTransaction(totalValue) {
-  const coinbaseTransaction = {
-    version: 2,
-    locktime: 0,
-    vin: [
-      {
-        txid: "0000000000000000000000000000000000000000000000000000000000000000",
-        vout: 4294967295,
-        scriptsig: "",
-        scriptsig_asm: "",
-        witness: [
-          "304402201c91da3c6363ae4ae824fac90bcc5044e17a619e09eddcfe4fe3b3b547c4da7f02206ef0112cdd3e1516fa4ec285b1343c151a3337622da1d5c5da272bedeb25660501",
-          "03610ec7abcea7ca2b42974cebb42c24ed1943493e94f5b7bc6d8352e308fbf268",
-        ],
-        is_coinbase: true,
-        sequence: "ffffffff",
-      },
-    ],
-    vout: [
-      {
-        scriptpubkey: "0014a171823325dbad4dbdc558b29f1778eedff066de",
-        scriptpubkey_asm:
-          "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
-        scriptpubkey_type: "p2wpkh",
-        scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
-        value: 165294283254,
-      },
-    ],
-  };
-  return coinbaseTransaction;
 }
 
 createBlock();

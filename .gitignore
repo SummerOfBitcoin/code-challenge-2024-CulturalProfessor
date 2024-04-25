@@ -2,3 +2,5 @@ node_modules
 test.js
 txid.txt
 output.txt
+wtxid.txt
+coinbase.txt
