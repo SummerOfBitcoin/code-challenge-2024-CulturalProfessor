@@ -112,61 +112,25 @@ export async function readTransactions() {
   const validTxids = [];
   let totalValue = 0;
 
-  return new Promise((resolve, reject) => {
-    fs.readdir(mempoolPath, (err, files) => {
-      if (err) {
-        console.error("Could not list the directory.", err);
-        reject(err);
-        return;
+  const files = await fs.promises.readdir(mempoolPath);
+  for (const file of files) {
+    const filePath = `${mempoolPath}/${file}`;
+    try {
+      const data = await fs.promises.readFile(filePath, "utf8");
+      const transactionJSON = JSON.parse(data);
+      const { flag, doubledSHA256Trxn, value } = verifyTransaction(
+        transactionJSON,
+        file
+      );
+      totalValue += value;
+      if (flag) {
+        validTxids.push(doubledSHA256Trxn);
       }
-
-      let fileVerifiedCount = 0;
-      let invalidTransactionCount = 0;
-      let startTimestamp = new Date().getTime();
-      let endTimestamp = 0;
-      let processedFiles = 0;
-
-      files.forEach((file, index) => {
-        const filePath = `${mempoolPath}/${file}`;
-        fs.readFile(filePath, "utf8", (err, data) => {
-          if (err) {
-            console.error("Could not read the file.", err);
-            processedFiles++;
-            if (processedFiles === files.length) {
-              resolve(txids, totalValue);
-            }
-            return;
-          }
-          try {
-            const transactionJSON = JSON.parse(data);
-            const { flag, doubledSHA256Trxn, value } = verifyTransaction(
-              transactionJSON,
-              file
-            );
-            totalValue += value;
-            if (flag) {
-              fileVerifiedCount++;
-              validTxids.push(doubledSHA256Trxn);
-            } else {
-              invalidTransactionCount++;
-            }
-            processedFiles++;
-            if (processedFiles === files.length) {
-              endTimestamp = new Date().getTime();
-              let elapsedTime = endTimestamp - startTimestamp;
-              resolve({ totalValue, validTxids });
-            }
-          } catch (e) {
-            console.error("Error parsing JSON", e);
-            processedFiles++;
-            if (processedFiles === files.length) {
-              resolve({ totalValue });
-            }
-          }
-        });
-      });
-    });
-  });
+    } catch (e) {
+      console.error("Error processing file:", filePath, e);
+    }
+  }
+  return { validTxids, totalValue };
 }
 
 await readTransactions();
