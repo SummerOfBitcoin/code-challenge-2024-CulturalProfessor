@@ -118,6 +118,7 @@ function verifyTransaction(transactionJSON, realFilename) {
 export async function readTransactions() {
   const mempoolPath = "./mempool";
   const validTxids = [];
+  const validFiles = [];
   let totalValue = 0;
   fs.writeFileSync("./nonSerial.txt", ``, { flag: "w" });
 
@@ -161,13 +162,18 @@ export async function readTransactions() {
         if (transactionJSON.vin.length < 300) {
           // console.log("Input", file,transactionJSON.vin.length);
           validTxids.push(doubledSHA256Trxn);
+          validFiles.push(file);
         }
       }
     } catch (e) {
       console.error("Error processing file:", filePath, e);
     }
   }
-  return { totalValue: totalValue, validTxids: validTxids };
+  return {
+    totalValue: totalValue,
+    validTxids: validTxids,
+    validFiles: validFiles,
+  };
 }
 
 await readTransactions();

@@ -21,27 +21,26 @@ async function createBlock() {
   let time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  const serializedCoinbase =
-    "010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f595814a000000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac0000000000000000266a24aa21a9ed00819541466cf12522f048108fe58245f4247c4dbd6e3450003d0e1e664afac90120000000000000000000000000000000000000000000000000000000000000000000000000";
-  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
-  let { totalValue, validTxids } = await readTransactions();
-  let wtxids = await getWTXIDS();
+  let { totalValue, validTxids, validFiles } = await readTransactions();
+  const coinbaseTxid = "00".repeat(32);
+  let wtxids = await getWTXIDS(validFiles);
   wtxids.unshift(coinbaseTxid);
-
   wtxids = wtxids.map((txid) => {
     return reverseBytes(txid);
   });
-
   let witnessRootHash = await createMerkleRoot(wtxids);
-  // console.log("Witness Root Hash: ", witnessRootHash);
   let witnessReservedValue =
     "0000000000000000000000000000000000000000000000000000000000000000";
 
-  // const txids = await getTXIDS();
-  // const witnessCommitment = `6a24aa21a9ed${doubleSHA256Hash(
-  //   `${witnessRootHash}${witnessReservedValue}`
-  // )}`;
+  const witnessCommitment = `6a24aa21a9ed${doubleSHA256Hash(
+    `${witnessRootHash}${witnessReservedValue}`
+  )}`;
+  const serializedCoinbase = `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f595814a000000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${witnessCommitment}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
+  // const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
+
+  // console.log("Witness Root Hash: ", witnessRootHash);
   // console.log("Witness Commitment: ", witnessCommitment);
+  // const txids = await getTXIDS();
   // const coinbaseTransaction = createCoinbaseTransaction(
   //   totalValue,
   //   witnessCommitment
