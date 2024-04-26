@@ -22,7 +22,7 @@ async function createBlock() {
     .toString(16)
     .padStart(8, "0");
   let { totalValue, validTxids, validFiles } = await readTransactions();
-  let wtxids = await getWTXIDS(validFiles);
+  let wtxids = await getWTXIDS();
   wtxids.unshift("00".repeat(32));
   wtxids = wtxids.map((txid) => {
     return reverseBytes(txid);
@@ -31,41 +31,22 @@ async function createBlock() {
   let witnessReservedValue =
     "0000000000000000000000000000000000000000000000000000000000000000";
 
-  const witnessCommitment = `6a24aa21a9ed${doubleSHA256Hash(
-    `${witnessRootHash}${witnessReservedValue}`
-  )}`;
-  const serializedCoinbase = `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f6994e7c260000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${witnessCommitment}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
-
+  let witnessCommitment = doubleSHA256Hash(
+    witnessRootHash + witnessReservedValue
+  );
+  const scriptpubkey = `6a24aa21a9ed${witnessCommitment}`;
+  const serializedCoinbase = `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f6994e7c260000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${scriptpubkey}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
   const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
 
-  // console.log("Witness Root Hash: ", witnessRootHash);
-  // console.log("Witness Commitment: ", witnessCommitment);
-  // const txids = await getTXIDS();
-  // const coinbaseTransaction = createCoinbaseTransaction(
-  //   totalValue,
-  //   witnessCommitment
-  // );
-  // const serializedCoinbase = serializeTransaction(coinbaseTransaction);
-  // console.log("Coinbase Transaction: ", serializedCoinbase);
   validTxids.unshift(coinbaseTxid);
   validTxids = validTxids.map((txid) => {
     return reverseBytes(txid);
   });
-  // txids.unshift(coinbaseTxid);
-  // console.log("Coinbase TXID: ", coinbaseTxid);
   let merkleRoot = createMerkleRoot(validTxids);
-
-  // console.log("Merkle Root: ", merkleRoot);
-  // merkleRoot = reverseBytes(merkleRoot);
-  // console.log("Merkle Root: ", merkleRoot);
-
   let nonce = "00000000";
   let bits = "ffff001f";
   let blockHeader =
     version + previousBlockHash + merkleRoot + time + bits + nonce;
-  let c = 0;
-
-  // console.log("Serialed", coinbaseTransaction);
   time = reverseBytes(time);
   do {
     nonce = Math.floor(Math.random() * 4294967295)

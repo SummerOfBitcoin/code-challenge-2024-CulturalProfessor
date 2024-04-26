@@ -64,22 +64,22 @@ export async function getWTXIDS(validFiles) {
   const files = await fs.promises.readdir(mempoolPath);
 
   for (const file of files) {
-    if (!validFiles.includes(file)) {
-      continue;
-    }
+    // if (!validFiles.includes(file)) {
+    //   continue;
+    // }
     const filePath = `${mempoolPath}/${file}`;
     try {
       const data = await fs.promises.readFile(filePath, "utf8");
       const transactionJSON = JSON.parse(data);
-      let flag = true;
-      transactionJSON.vin.forEach((input) => {
-        if (!input.witness) {
-          flag = false;
-        }
-      });
-      if (!flag) {
-        continue;
-      }
+      // let flag = true;
+      // transactionJSON.vin.forEach((input) => {
+      //   if (!input.witness) {
+      //     flag = false;
+      //   }
+      // });
+      // if (!flag) {
+      //   continue;
+      // }
       const serializedTransactionData =
         serializeSegWitTransactionForWTXID(transactionJSON);
       const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);

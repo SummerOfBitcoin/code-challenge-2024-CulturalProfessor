@@ -51,10 +51,10 @@ export function serializeSegWitTransactionForWTXID(transaction) {
   // Serialize witness
   vin.forEach((input) => {
     // Adding witness for non-witness inputs
-    if (input.witness.length === 0) {
-      serializedTransaction +=
-        "0120000000000000000000000000000000000000000000000000000000000000000000000000";
-    } else {
+    if (input.witness !== undefined) {
+      // serializedTransaction +=
+      //   "0120000000000000000000000000000000000000000000000000000000000000000000000000";
+
       serializedTransaction += input.witness.length
         .toString(16)
         .padStart(2, "0");
