@@ -46,7 +46,7 @@ async function createBlock() {
   validTxids.unshift(coinbaseTxid);
   txids.unshift(coinbaseTxid);
   // console.log("Coinbase TXID: ", coinbaseTxid);
-  let { merkleRoot } = await createMerkleRoot(txids);
+  let merkleRoot  = createMerkleRoot(validTxids);
   let nonce = "00000000";
   let bits = "ffff001f";
   let blockHeader =
@@ -54,7 +54,7 @@ async function createBlock() {
   let c = 0;
 
   // console.log("Merkle Root: ", merkleRoot);
-  merkleRoot = reverseBytes(merkleRoot);
+  // merkleRoot = reverseBytes(merkleRoot);
   // console.log("Merkle Root: ", merkleRoot);
 
   // console.log("Serialed", coinbaseTransaction);

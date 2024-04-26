@@ -129,7 +129,7 @@ export async function getWTXIDS() {
 //   return coinbaseTransaction;
 // }
 
-export async function createMerkleRoot(txids) {
+export function createMerkleRoot(txids) {
   try {
     // Calculate the Merkle root iteratively without recursion
     txids = txids.map((txid) => reverseBytes(txid));
@@ -145,9 +145,7 @@ export async function createMerkleRoot(txids) {
     }
 
     // Return the Merkle root
-    return {
-      merkleRoot: txids[0],
-    };
+    return txids[0];
   } catch (error) {
     console.error("Error in createMerkleRoot:", error);
     throw error; // Propagate the error to the caller
