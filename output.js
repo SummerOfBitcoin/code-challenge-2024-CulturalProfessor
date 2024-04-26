@@ -22,9 +22,8 @@ async function createBlock() {
     .toString(16)
     .padStart(8, "0");
   let { totalValue, validTxids, validFiles } = await readTransactions();
-  const coinbaseTxid = "00".repeat(32);
   let wtxids = await getWTXIDS(validFiles);
-  wtxids.unshift(coinbaseTxid);
+  wtxids.unshift("00".repeat(32));
   wtxids = wtxids.map((txid) => {
     return reverseBytes(txid);
   });
@@ -35,8 +34,9 @@ async function createBlock() {
   const witnessCommitment = `6a24aa21a9ed${doubleSHA256Hash(
     `${witnessRootHash}${witnessReservedValue}`
   )}`;
-  const serializedCoinbase = `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f595814a000000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${witnessCommitment}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
-  // const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
+  const serializedCoinbase = `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f6994e7c260000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${witnessCommitment}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
+
+  const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
 
   // console.log("Witness Root Hash: ", witnessRootHash);
   // console.log("Witness Commitment: ", witnessCommitment);
