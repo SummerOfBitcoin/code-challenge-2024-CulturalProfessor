@@ -30,7 +30,7 @@ async function createBlock() {
   let witnessReservedValue =
     "0000000000000000000000000000000000000000000000000000000000000000";
 
-  const txids = await getTXIDS();
+  // const txids = await getTXIDS();
   const witnessCommitment = `6a24aa21a9ed${doubleSHA256Hash(
     `${witnessReservedValue}${witnessRootHash}`
   )}`;
@@ -44,9 +44,12 @@ async function createBlock() {
   // console.log("Coinbase Transaction: ", serializedCoinbase);
   const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
   validTxids.unshift(coinbaseTxid);
-  txids.unshift(coinbaseTxid);
+  validTxids = validTxids.map((txid) => {
+    return reverseBytes(txid);
+  });
+  // txids.unshift(coinbaseTxid);
   // console.log("Coinbase TXID: ", coinbaseTxid);
-  let merkleRoot  = createMerkleRoot(validTxids);
+  let merkleRoot = createMerkleRoot(validTxids);
   let nonce = "00000000";
   let bits = "ffff001f";
   let blockHeader =
@@ -81,7 +84,7 @@ async function createBlock() {
   );
 
   writeInFile("./output.txt", blockValues);
-  writeInFile("./txid.txt", txids);
+  // writeInFile("./txid.txt", txids);
   writeInFile("./wtxid.txt", wtxids);
 
   const endTime = Date.now();

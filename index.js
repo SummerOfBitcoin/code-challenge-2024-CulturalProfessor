@@ -97,7 +97,7 @@ function verifyTransaction(transactionJSON, realFilename) {
         flag = false;
         return;
       } else {
-        // flag = true;
+        flag = true;
       }
     } else if (input.prevout.scriptpubkey_type === "v0_p2wsh") {
       return false;
