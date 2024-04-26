@@ -50,20 +50,12 @@ export function serializeSegWitTransactionForWTXID(transaction) {
 
   // Serialize witness
   vin.forEach((input) => {
-    // Adding witness for non-witness inputs
-    if (input.witness !== undefined) {
-      // serializedTransaction +=
-      //   "0120000000000000000000000000000000000000000000000000000000000000000000000000";
-
-      serializedTransaction += input.witness.length
-        .toString(16)
-        .padStart(2, "0");
-      input.witness.forEach((witnessElement) => {
-        let elementSize = witnessElement.length / 2;
-        serializedTransaction += elementSize.toString(16).padStart(2, "0");
-        serializedTransaction += witnessElement;
-      });
-    }
+    serializedTransaction += input.witness.length.toString(16).padStart(2, "0");
+    input.witness.forEach((witnessElement) => {
+      let elementSize = witnessElement.length / 2;
+      serializedTransaction += elementSize.toString(16).padStart(2, "0");
+      serializedTransaction += witnessElement;
+    });
   });
 
   // Serialize locktime

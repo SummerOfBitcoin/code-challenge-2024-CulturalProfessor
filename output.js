@@ -6,13 +6,8 @@ import {
   getTXIDS,
   getWTXIDS,
   createMerkleRoot,
-  // createCoinbaseTransaction,
   writeInFile,
 } from "./utils.js";
-import {
-  serializeSegWitTransactionForWTXID,
-  serializeTransaction,
-} from "./serialize.js";
 
 async function createBlock() {
   const startTime = Date.now(); // Record the start time
@@ -22,6 +17,7 @@ async function createBlock() {
     .toString(16)
     .padStart(8, "0");
   let { totalValue, validTxids, validFiles } = await readTransactions();
+  // Error Probably due to wtxids
   let wtxids = await getWTXIDS();
   wtxids.unshift("00".repeat(32));
   wtxids = wtxids.map((txid) => {

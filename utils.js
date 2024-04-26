@@ -62,7 +62,6 @@ export async function getWTXIDS(validFiles) {
   const mempoolPath = "./mempool";
   const txids = [];
   const files = await fs.promises.readdir(mempoolPath);
-
   for (const file of files) {
     // if (!validFiles.includes(file)) {
     //   continue;
@@ -71,24 +70,25 @@ export async function getWTXIDS(validFiles) {
     try {
       const data = await fs.promises.readFile(filePath, "utf8");
       const transactionJSON = JSON.parse(data);
-      // let flag = true;
-      // transactionJSON.vin.forEach((input) => {
-      //   if (!input.witness) {
-      //     flag = false;
-      //   }
-      // });
-      // if (!flag) {
-      //   continue;
-      // }
-      const serializedTransactionData =
-        serializeSegWitTransactionForWTXID(transactionJSON);
+      let flag = true;
+      transactionJSON.vin.forEach((input) => {
+        if (!input.witness) {
+          flag = false;
+        }
+      });
+      let serializedTransactionData = "";
+      if (flag) {
+        serializedTransactionData =
+          serializeSegWitTransactionForWTXID(transactionJSON);
+      } else {
+        serializedTransactionData = serializeTransaction(transactionJSON);
+      }
       const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
       txids.push(doubledSHA256Trxn);
     } catch (e) {
       console.error("Error processing file:", filePath, e);
     }
   }
-
   return txids;
 }
 
