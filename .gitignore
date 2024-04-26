@@ -6,3 +6,4 @@ wtxid.txt
 coinbase.txt
 nonSerial.txt
 validtxid.txt
+graderMempool.json
