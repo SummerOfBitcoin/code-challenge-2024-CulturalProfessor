@@ -49,15 +49,22 @@ export function serializeSegWitTransactionForWTXID(transaction) {
   });
 
   // Serialize witness
+  // Serialize witness
   vin.forEach((input) => {
-    serializedTransaction += input.witness.length.toString(16).padStart(2, "0");
-    input.witness.forEach((witnessElement) => {
-      let elementSize = witnessElement.length / 2;
-      serializedTransaction += elementSize.toString(16).padStart(2, "0");
-      serializedTransaction += witnessElement;
-    });
+    if (input.witness && input.witness.length > 0) {
+      serializedTransaction += input.witness.length
+        .toString(16)
+        .padStart(2, "0");
+      input.witness.forEach((witnessElement) => {
+        let elementSize = witnessElement.length / 2;
+        serializedTransaction += elementSize.toString(16).padStart(2, "0");
+        serializedTransaction += witnessElement;
+      });
+    } else {
+      // If witness data is not present, add a zero-length witness marker
+      serializedTransaction += "00";
+    }
   });
-
   // Serialize locktime
   serializedTransaction += locktime.toString(16).padStart(8, "0");
 

@@ -77,12 +77,12 @@ export async function getWTXIDS(validFiles) {
         }
       });
       let serializedTransactionData = "";
-      if (flag) {
+      // if (flag) {
         serializedTransactionData =
           serializeSegWitTransactionForWTXID(transactionJSON);
-      } else {
-        serializedTransactionData = serializeTransaction(transactionJSON);
-      }
+      // } else {
+        // serializedTransactionData = serializeTransaction(transactionJSON);
+      // }
       const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
       txids.push(doubledSHA256Trxn);
     } catch (e) {
