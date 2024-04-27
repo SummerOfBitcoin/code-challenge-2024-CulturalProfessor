@@ -19,7 +19,7 @@ async function createBlock() {
     .padStart(8, "0");
   let { totalValue, validTxids, validFiles, totalFees } =
     await readTransactions();
-  console.log("Total Fees: ", totalFees);
+  // console.log("Total Fees: ", totalFees);
   let blockSubsidy = 624981725;
   let blockReward = blockSubsidy + totalFees;
   blockReward = blockReward.toString(16).padStart(16, "0");
@@ -45,7 +45,7 @@ async function createBlock() {
     blockReward,
     scriptpubkey
   );
-  console.log("Coinbase Transaction: ", serializedCoinbase);
+  // console.log("Coinbase Transaction: ", serializedCoinbase);
 
   const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
 

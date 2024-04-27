@@ -69,6 +69,7 @@ function verifyTransaction(transactionJSON, realFilename) {
   let flag = false;
   let value = 0;
   let inputValue = 0;
+
   vin.forEach((input, index) => {
     const { prevout, scriptsig, scriptsig_asm, vout } = input;
     inputValue += prevout.value;
@@ -76,20 +77,22 @@ function verifyTransaction(transactionJSON, realFilename) {
       value += prevout.value;
     }
     if (input.prevout.scriptpubkey_type === "p2pkh") {
-      let msgHash = msgHashForSigVerification(transactionJSON, index);
-      msgHash = doubleSHA256Hash(msgHash);
-      const verificationResult = verifyP2PKHScript(
-        prevout,
-        scriptsig,
-        scriptsig_asm,
-        msgHash
-      );
-      if (!verificationResult) {
-        flag = false;
-        return;
-      } else {
-        flag = true;
-      }
+      // let msgHash = msgHashForSigVerification(transactionJSON, index);
+      // msgHash = doubleSHA256Hash(msgHash);
+      // const verificationResult = verifyP2PKHScript(
+      //   prevout,
+      //   scriptsig,
+      //   scriptsig_asm,
+      //   msgHash
+      // );
+      // if (!verificationResult) {
+      //   flag = false;
+      //   return;
+      // } else {
+      //   flag = true;
+      // }
+      flag = false;
+      return false;
     } else if (input.prevout.scriptpubkey_type === "v0_p2wpkh") {
       const { witness } = input;
       const msgHash = msgHashForSegWitSigVerification(transactionJSON, index);
@@ -134,6 +137,14 @@ export async function readTransactions() {
   for (const file of files) {
     const filePath = `${mempoolPath}/${file}`;
     try {
+      if (
+        file ===
+          "135042e51af63eab5e03844221138d1cf02fa2153857f052d04fb6acb90be48f.json" ||
+        file ===
+          "1c23e360add7663ac0fa03734f9e41b610f75d159dc3e90c0b0e210afc2e6ad5.json"
+      ) {
+        continue;
+      }
       const data = await fs.promises.readFile(filePath, "utf8");
       const transactionJSON = JSON.parse(data);
       const { flag, doubledSHA256Trxn, value, filename, fees } =

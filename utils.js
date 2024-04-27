@@ -81,6 +81,7 @@ export async function getWTXIDS(validFiles) {
         serializedTransactionData =
           serializeSegWitTransactionForWTXID(transactionJSON);
       } else {
+        console.log("Non Witness Transaction",file);
         serializedTransactionData = serializeTransaction(transactionJSON);
       }
       const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
