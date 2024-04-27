@@ -18,7 +18,8 @@ async function createBlock() {
     .padStart(8, "0");
   let { totalValue, validTxids, validFiles } = await readTransactions();
   // Error Probably due to wtxids
-  let wtxids = await getWTXIDS();
+  let wtxids = await getWTXIDS(validFiles);
+  
   wtxids.unshift("00".repeat(32));
   wtxids = wtxids.map((txid) => {
     return reverseBytes(txid);

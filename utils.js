@@ -63,9 +63,9 @@ export async function getWTXIDS(validFiles) {
   const txids = [];
   const files = await fs.promises.readdir(mempoolPath);
   for (const file of files) {
-    // if (!validFiles.includes(file)) {
-    //   continue;
-    // }
+    if (!validFiles.includes(file)) {
+      continue;
+    }
     const filePath = `${mempoolPath}/${file}`;
     try {
       const data = await fs.promises.readFile(filePath, "utf8");
