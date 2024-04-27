@@ -105,10 +105,10 @@ function verifyTransaction(transactionJSON, realFilename) {
         flag = true;
       }
     } else if (input.prevout.scriptpubkey_type === "v0_p2wsh") {
+      flag = false;
       return false;
     } else if (input.prevout.scriptpubkey_type === "p2sh") {
-      return false;
-    } else if (input.prevout.scriptpubkey_type === "p2ms") {
+      flag = false;
       return false;
     } else if (input.prevout.scriptpubkey_type === "v1_p2tr") {
       flag = true;
