@@ -77,12 +77,12 @@ export async function getWTXIDS(validFiles) {
         }
       });
       let serializedTransactionData = "";
-      // if (flag) {
+      if (flag) {
         serializedTransactionData =
           serializeSegWitTransactionForWTXID(transactionJSON);
-      // } else {
-        // serializedTransactionData = serializeTransaction(transactionJSON);
-      // }
+      } else {
+        serializedTransactionData = serializeTransaction(transactionJSON);
+      }
       const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
       txids.push(doubledSHA256Trxn);
     } catch (e) {
@@ -131,6 +131,10 @@ export async function getWTXIDS(validFiles) {
 //   };
 //   return coinbaseTransaction;
 // }
+
+export function createCoinbaseTransaction(blockReward, scriptpubkey) {
+  return `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02${blockReward}1976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${scriptpubkey}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
+}
 
 export function createMerkleRoot(txids) {
   try {

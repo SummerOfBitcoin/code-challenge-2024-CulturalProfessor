@@ -7,6 +7,7 @@ import {
   getWTXIDS,
   createMerkleRoot,
   writeInFile,
+  createCoinbaseTransaction,
 } from "./utils.js";
 
 async function createBlock() {
@@ -16,10 +17,17 @@ async function createBlock() {
   let time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  let { totalValue, validTxids, validFiles } = await readTransactions();
+  let { totalValue, validTxids, validFiles, totalFees } =
+    await readTransactions();
+  console.log("Total Fees: ", totalFees);
+  let blockSubsidy = 624981725;
+  let blockReward = blockSubsidy + totalFees;
+  blockReward = blockReward.toString(16).padStart(16, "0");
+  blockReward = reverseBytes(blockReward);
+
   // Error Probably due to wtxids
   let wtxids = await getWTXIDS(validFiles);
-  
+
   wtxids.unshift("00".repeat(32));
   wtxids = wtxids.map((txid) => {
     return reverseBytes(txid);
@@ -31,8 +39,14 @@ async function createBlock() {
   let witnessCommitment = doubleSHA256Hash(
     witnessRootHash + witnessReservedValue
   );
+  // console.log("Witness Commitment: ", witnessCommitment);
   const scriptpubkey = `6a24aa21a9ed${witnessCommitment}`;
-  const serializedCoinbase = `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02f6994e7c260000001976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${scriptpubkey}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
+  const serializedCoinbase = createCoinbaseTransaction(
+    blockReward,
+    scriptpubkey
+  );
+  console.log("Coinbase Transaction: ", serializedCoinbase);
+
   const coinbaseTxid = doubleSHA256Hash(serializedCoinbase);
 
   validTxids.unshift(coinbaseTxid);

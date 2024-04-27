@@ -68,8 +68,10 @@ function verifyTransaction(transactionJSON, realFilename) {
 
   let flag = false;
   let value = 0;
+  let inputValue = 0;
   vin.forEach((input, index) => {
     const { prevout, scriptsig, scriptsig_asm, vout } = input;
+    inputValue += prevout.value;
     if (vout === 0) {
       value += prevout.value;
     }
@@ -110,7 +112,12 @@ function verifyTransaction(transactionJSON, realFilename) {
       return true;
     }
   });
-  return { flag, doubledSHA256Trxn, value, filename };
+  let outputValue = 0;
+  transactionJSON.vout.forEach((output) => {
+    outputValue += output.value;
+  });
+  let fees = inputValue - outputValue;
+  return { flag, doubledSHA256Trxn, value, filename, fees };
 }
 
 // console.log("Verification result:", verifyTransaction(transactionJSON));
@@ -119,6 +126,7 @@ export async function readTransactions() {
   const mempoolPath = "./mempool";
   const validTxids = [];
   const validFiles = [];
+  let totalFees = 0;
   let totalValue = 0;
   fs.writeFileSync("./nonSerial.txt", ``, { flag: "w" });
 
@@ -128,10 +136,8 @@ export async function readTransactions() {
     try {
       const data = await fs.promises.readFile(filePath, "utf8");
       const transactionJSON = JSON.parse(data);
-      const { flag, doubledSHA256Trxn, value, filename } = verifyTransaction(
-        transactionJSON,
-        file
-      );
+      const { flag, doubledSHA256Trxn, value, filename, fees } =
+        verifyTransaction(transactionJSON, file);
       // Invalid propbably due to large input size
       // if (
       //   "c1b07e1401bcd97807fa664732adb35fc12a6d389d807b8e8176ec9a0dc495c5" ===
@@ -163,6 +169,7 @@ export async function readTransactions() {
           // console.log("Input", file,transactionJSON.vin.length);
           validTxids.push(doubledSHA256Trxn);
           validFiles.push(file);
+          totalFees += fees;
         }
       }
     } catch (e) {
@@ -173,6 +180,7 @@ export async function readTransactions() {
     totalValue: totalValue,
     validTxids: validTxids,
     validFiles: validFiles,
+    totalFees: totalFees,
   };
 }
 
