@@ -1,5 +1,9 @@
 import CryptoJS from "crypto-js";
-import { verifyP2PKHScript, verifyP2WPKHScript } from "./scripts.js";
+import {
+  verifyP2PKHScript,
+  verifyP2WPKHScript,
+  // verifyP2WSHscript,
+} from "./scripts.js";
 import { serializeTransaction } from "./serialize.js";
 import {
   msgHashForSegWitSigVerification,
@@ -9,46 +13,54 @@ import { reverseBytes, doubleSHA256Hash } from "./utils.js";
 import fs from "fs";
 
 const transactionJSON = {
-  version: 2,
-  locktime: 834637,
+  version: 1,
+  locktime: 0,
   vin: [
     {
-      txid: "a3336d908030c8f2af03f1101585f7b3247edba686a2f48a2c7966d5707c0454",
+      txid: "2635cf823dc165076867e7b255c6922de4ec2ecda840d190e9551b3fa83922d9",
       vout: 1,
       prevout: {
-        scriptpubkey: "0014594b9d704b835b91c2ab6927deb1b36fb63350e9",
+        scriptpubkey:
+          "00200b685cc06add0b2e23bcd67f0bef8d364cdc1abcf6fb126958826a7cfe351bf3",
         scriptpubkey_asm:
-          "OP_0 OP_PUSHBYTES_20 594b9d704b835b91c2ab6927deb1b36fb63350e9",
-        scriptpubkey_type: "v0_p2wpkh",
-        scriptpubkey_address: "bc1qt99e6uztsdders4tdynaavdnd7mrx58fssf4f7",
-        value: 11805728,
+          "OP_0 OP_PUSHBYTES_32 0b685cc06add0b2e23bcd67f0bef8d364cdc1abcf6fb126958826a7cfe351bf3",
+        scriptpubkey_type: "v0_p2wsh",
+        scriptpubkey_address:
+          "bc1qpd59esr2m59jugau6elshmudxexdcx4u7ma3y62csf48el34r0esxcm9ze",
+        value: 22664981,
       },
       scriptsig: "",
       scriptsig_asm: "",
       witness: [
-        "304402205f2c5ef5ebc1ae4ffcef200a6fc6e60bf996ea0f8a5b188e86fc3239bcdb54b30220089df646a08d3fb2c7940b62a0461f0d3fe0664a596d7ca7d050bb13b6f0f36d01",
-        "02f5ef263466e8bc46b09c6d4164fba6f71af79fb05bd893e090d46b9d6006403f",
+        "",
+        "30440220632b9288099fb49f97231fa6fd1a5827feafbdec078371286a055fc2ac2db70b0220112661faf2b4a3a6155a85f58356550b050adaee0dc541e9c9dfab253f3b3b7101",
+        "304402203af48390599f6b78edd35c2761ad18019f09ae1df29e608b537be25021e5f547022013065326f5a87815f8e8de1cdef210ff41e7d4a76c399b9ea681f76dcab6377201",
+        "5221020d2922f329933405a8ba18ee7cdc7b0819f02a113b9e55fb19a44b4cf1549dd42103d26b127f1dd700779f1d579233d99317e6e16075c9e5b6e3c9e069173ddcc3382102b144f7316d67b66aeb3b76095996e974899886c715d431ebb78c22e09a0e7ee353ae",
       ],
       is_coinbase: false,
       sequence: 4294967293,
+      inner_witnessscript_asm:
+        "OP_PUSHNUM_2 OP_PUSHBYTES_33 020d2922f329933405a8ba18ee7cdc7b0819f02a113b9e55fb19a44b4cf1549dd4 OP_PUSHBYTES_33 03d26b127f1dd700779f1d579233d99317e6e16075c9e5b6e3c9e069173ddcc338 OP_PUSHBYTES_33 02b144f7316d67b66aeb3b76095996e974899886c715d431ebb78c22e09a0e7ee3 OP_PUSHNUM_3 OP_CHECKMULTISIG",
     },
   ],
   vout: [
     {
-      scriptpubkey: "00148166a639d0f26d6044f8e2b7072634606c2ac242",
+      scriptpubkey: "a9140012a9bfd6f1b7171d9f751cffb8b3241ef2a1ed87",
       scriptpubkey_asm:
-        "OP_0 OP_PUSHBYTES_20 8166a639d0f26d6044f8e2b7072634606c2ac242",
-      scriptpubkey_type: "v0_p2wpkh",
-      scriptpubkey_address: "bc1qs9n2vwws7fkkq38cu2mswf35vpkz4sjz72saj9",
-      value: 4954790,
+        "OP_HASH160 OP_PUSHBYTES_20 0012a9bfd6f1b7171d9f751cffb8b3241ef2a1ed OP_EQUAL",
+      scriptpubkey_type: "p2sh",
+      scriptpubkey_address: "31hQHH3rhVrYSbL9nFmahErkaGKRwLcUkG",
+      value: 78647,
     },
     {
-      scriptpubkey: "a914425a2834d743cde2f4472914492e24b62a310a3e87",
+      scriptpubkey:
+        "002057242cf0b1daec2105b9cf09c0057d141d9c36b23e1250fc597afa828aa226f8",
       scriptpubkey_asm:
-        "OP_HASH160 OP_PUSHBYTES_20 425a2834d743cde2f4472914492e24b62a310a3e OP_EQUAL",
-      scriptpubkey_type: "p2sh",
-      scriptpubkey_address: "37jrXRhWVuxqzmWXeZ1wZQQDcrMUQ5dnvQ",
-      value: 6847104,
+        "OP_0 OP_PUSHBYTES_32 57242cf0b1daec2105b9cf09c0057d141d9c36b23e1250fc597afa828aa226f8",
+      scriptpubkey_type: "v0_p2wsh",
+      scriptpubkey_address:
+        "bc1q2ujzeu93mtkzzpdeeuyuqptazswecd4j8cf9plze0tag9z4zymuqhhdvwy",
+      value: 22582132,
     },
   ],
 };
@@ -76,24 +88,7 @@ function verifyTransaction(transactionJSON, realFilename) {
     if (vout === 0) {
       value += prevout.value;
     }
-    if (input.prevout.scriptpubkey_type === "p2pkh") {
-      // let msgHash = msgHashForSigVerification(transactionJSON, index);
-      // msgHash = doubleSHA256Hash(msgHash);
-      // const verificationResult = verifyP2PKHScript(
-      //   prevout,
-      //   scriptsig,
-      //   scriptsig_asm,
-      //   msgHash
-      // );
-      // if (!verificationResult) {
-      //   flag = false;
-      //   return;
-      // } else {
-      //   flag = true;
-      // }
-      flag = false;
-      return false;
-    } else if (input.prevout.scriptpubkey_type === "v0_p2wpkh") {
+    if (input.prevout.scriptpubkey_type === "v0_p2wpkh") {
       const { witness } = input;
       const msgHash = msgHashForSegWitSigVerification(transactionJSON, index);
       const verificationResult = verifyP2WPKHScript(prevout, witness, msgHash);
@@ -104,15 +99,6 @@ function verifyTransaction(transactionJSON, realFilename) {
       } else {
         flag = true;
       }
-    } else if (input.prevout.scriptpubkey_type === "v0_p2wsh") {
-      flag = false;
-      return false;
-    } else if (input.prevout.scriptpubkey_type === "p2sh") {
-      flag = false;
-      return false;
-    } else if (input.prevout.scriptpubkey_type === "v1_p2tr") {
-      flag = true;
-      return true;
     }
   });
   let outputValue = 0;
@@ -195,4 +181,4 @@ export async function readTransactions() {
   };
 }
 
-await readTransactions();
+// await readTransactions();

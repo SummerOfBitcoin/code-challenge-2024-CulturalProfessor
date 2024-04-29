@@ -80,12 +80,12 @@ export async function getWTXIDS(validFiles) {
       if (flag) {
         serializedTransactionData =
           serializeSegWitTransactionForWTXID(transactionJSON);
+          const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
+          txids.push(doubledSHA256Trxn);
       } else {
-        console.log("Non Witness Transaction",file);
-        serializedTransactionData = serializeTransaction(transactionJSON);
+        // console.log("Non Witness Transaction",file);
+        // serializedTransactionData = serializeTransaction(transactionJSON);
       }
-      const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
-      txids.push(doubledSHA256Trxn);
     } catch (e) {
       console.error("Error processing file:", filePath, e);
     }
