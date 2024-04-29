@@ -89,6 +89,7 @@ function verifyTransaction(transactionJSON, realFilename) {
         flag = false;
         return;
       } else {
+        // console.log("P2WPKH verification passed", vin.length);
         flag = true;
       }
     }
@@ -101,7 +102,7 @@ function verifyTransaction(transactionJSON, realFilename) {
   return { flag, doubledSHA256Trxn, value, filename, fees };
 }
 
-console.log("Verification result:", verifyTransaction(transactionJSON));
+// console.log("Verification result:", verifyTransaction(transactionJSON));
 
 export async function readTransactions() {
   const mempoolPath = "./mempool";
@@ -159,25 +160,7 @@ export async function readTransactions() {
       const transactionJSON = JSON.parse(data);
       const { flag, doubledSHA256Trxn, value, filename, fees } =
         verifyTransaction(transactionJSON, file);
-      // Invalid propbably due to large input size
-      // if (
-      //   "c1b07e1401bcd97807fa664732adb35fc12a6d389d807b8e8176ec9a0dc495c5" ===
-      //     doubledSHA256Trxn ||
-      //   "0cef1aeb21c04bccf4441f3763b6d57d50c2da82ddd667008f0587fc8541d583" ===
-      //     doubledSHA256Trxn ||
-      //   "41f24d67f36b0a0fca6d245ff8c6950863bf831abc3d94b6d15f5e1d41b9f9e6" ===
-      //     doubledSHA256Trxn ||
-      //   "c5394a81f42338e75bee39aba352ca018109f35b1eb51e453ecc06ebc699137b" ===
-      //     doubledSHA256Trxn
-      // ) {
-      //   let val = 0;
-      //   transactionJSON.vin.forEach((input, index) => {
-      //     const { prevout, scriptsig, scriptsig_asm, vout } = input;
-      //     val = val + prevout.value;
-      //   });
-      //   console.log(file, val);
-      //   console.log("Input", transactionJSON.vin.length);
-      // }
+
       if (`${filename}.json` !== file) {
         fs.writeFileSync("./nonSerial.txt", `${file}\t${flag}\n`, {
           flag: "a",

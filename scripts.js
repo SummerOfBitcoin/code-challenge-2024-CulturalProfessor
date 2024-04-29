@@ -89,25 +89,27 @@ export function verifyP2WPKHScript(prevout, witness, msgHash) {
   // Verify the signature
   const publicKeyBuffer = Buffer.from(publicKeyHex, "hex");
 
+  const prevoutScriptAsm = prevout.scriptpubkey_asm.split(" ");
+  const pubKeyHash = prevoutScriptAsm[2];
   // Use p2pkh here for verification
 
-  const signatureBuffer = Buffer.from(signatureHex,"hex");
-  const sigDEC = secp256k1.signatureImport(
-    signatureBuffer.slice(0, signatureBuffer.byteLength - 1)
-  );
-
-  const result = secp256k1.ecdsaVerify(
-    sigDEC,
-    Buffer.from(msgHash, "hex"),
-    publicKeyBuffer
-  );
-  // const scriptpubkey_asm = `OP_DUP OP_HASH160 OP_PUSHBYTES_20 ${publicKeyHex} OP_EQUALVERIFY OP_CHECKSIG`;
-  // const result = verifyP2PKHScript(
-  //   scriptpubkey_asm,
-  //   signatureHex,
-  //   publicKeyHex,
-  //   msgHash
+  // const signatureBuffer = Buffer.from(signatureHex,"hex");
+  // const sigDEC = secp256k1.signatureImport(
+  //   signatureBuffer.slice(0, signatureBuffer.byteLength - 1)
   // );
+
+  // const result = secp256k1.ecdsaVerify(
+  //   sigDEC,
+  //   Buffer.from(msgHash, "hex"),
+  //   publicKeyBuffer
+  // );
+  const scriptpubkey_asm = `OP_DUP OP_HASH160 OP_PUSHBYTES_20 ${pubKeyHash} OP_EQUALVERIFY OP_CHECKSIG`;
+  const result = verifyP2PKHScript(
+    scriptpubkey_asm,
+    signatureHex,
+    publicKeyHex,
+    msgHash
+  );
 
   return result;
 }
