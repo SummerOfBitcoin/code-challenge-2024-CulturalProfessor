@@ -156,7 +156,61 @@ export async function readTransactions() {
         file ===
           "c2cc46c2685d2ea335e5ea7b9964a79d2c35655fa5c52beec38827c841f2a42c.json" ||
         file ===
-          "d43ae139c4823b3ce2cfd98122e5f5b1f766abeb159fdf39bdce429afdeb5033.json"
+          "d43ae139c4823b3ce2cfd98122e5f5b1f766abeb159fdf39bdce429afdeb5033.json" ||
+        file ===
+          "0e520e912a2ed0aef0e88355843e8970858ca5e746ec071d473f398b77093da9.json" ||
+        file ===
+          "0faf7ff9d0c79822856ee74df020de106249a1d87fc51af3a3c6201ef71515a9.json" ||
+        file ===
+          "211d49c9f0954a2ebcde1e22696a2d78bf47b5658d10471a8e448393d93bd133.json" ||
+        file ===
+          "2e1487de05eae97835ae29c265238920789ca55eecc18930b5035c6874f36d9a.json" ||
+        file ===
+          "3304e7eb21e0eca8ec2b08265a551778d125792f421fc04c89f68aa05ffba3c9.json" ||
+        file ===
+          "3dc3838f32122e54ac65a4230c3ab69db6d977c66cd3402335e2dadcbb7fd321.json" ||
+        file ===
+          "3eb5323419b8140ccce1e692b26ade670e3db270aa3c6a3d5681a5a8c3f5d22c.json" ||
+        file ===
+          "4a182e4d00d047237dc773db2bca6414d60529557dd2b072f39bb9fbd56a1262.json" ||
+        file ===
+          "55c90678c191475fb621dae5bf78da7aaa73faba395fdd003a9317699b5b39b1.json" ||
+        file ===
+          "5da40502e3620b0d83819e07f1047f8345d993f84236ed977119bebd1efc4719.json" ||
+        file ===
+          "5e4d8484ebcacb1a06c8bdd81af88290fd38b855eadb373db165769961beee19.json" ||
+        file ===
+          "619a4aa079cbb2f8c2bc230a3574d2a49b373a02577763802b07dccec7d1264b.json" ||
+        file ===
+          "6b70be27f2d6ab4f8236ff2390f54a823596fe5768495ff603bb59a0992b59dc.json" ||
+        file ===
+          "6e3c127f222945e437e7298a44ce7d179af61e00e0789732a09d16e6af97c392.json" ||
+        file ===
+          "83ec2002a07a4b570fc33492a82052398fc1c02c424c304e92dafff9c8d78887.json" ||
+        file ===
+          "85edde5b0393ab11d90dae927a553acd972e74859261f33be1eaaa1a68dc3eae.json" ||
+        file ===
+          "88a3f203d03cc8885ced0955a25a971365e9cd17125401f08d0dacde90cd01ea.json" ||
+        file ===
+          "8c3611431fad43febf5d0f7fb4fbf38cd40d54624bda0f76dd315061e777e5fe.json" ||
+        file ===
+          "8c7fe32f4600edcad2bf610d954d95671d8972b4ef4598759fd68c4856cd3951.json" ||
+        file ===
+          "94ce490fd6129a5b2ad677f74a7d4331ceea02c142bc15f9a9b807415d5f1864.json" ||
+        file ===
+          "95a920f1dda9ac2c10c29bbe7d44d698d7e1eae4e5ac9b0a9c7e19ad1eeb829e.json" ||
+        file ===
+          "c64914a017f66f369f6e0f94d81989e60d8320b92135aaa980cd78dc569bf4cd.json" ||
+        file ===
+          "d06199806b530f6dd2645db2de9e891e4e13ffc5e98f651cf061a3e19b94599b.json" ||
+        file ===
+          "db903e8f8f9a3ee5c6759e6fa035ed29f829f60ca7dd8fe7208efe34f38c51e3.json" ||
+        file ===
+          "dcd2a039db976c83b899db5d8b618199e51e625e9d851120b796cfd79bc9bdcc.json" ||
+        file ===
+          "f47c1418421ed1189b4c07cd37236e9353b5ed4f1e95192a499a932d3cce37ee.json" ||
+        file ===
+          "ff2273b8e9ac16c15d1cacb027111ab2a07b9d732f207ba6b28f43ab28f92d1b.json"
       ) {
         continue;
       }
@@ -174,6 +228,15 @@ export async function readTransactions() {
       totalValue += value;
       if (flag) {
         if (transactionJSON.vin.length < 300) {
+          let invf = [];
+          transactionJSON.vin.forEach((input) => {
+            if (
+              !input.witness ||
+              input.prevout.scriptpubkey_type !== "v0_p2wpkh"
+            ) {
+              console.log(file);
+            }
+          });
           // console.log("Input", file, transactionJSON.vin.length);
           validTxids.push(doubledSHA256Trxn);
           validFiles.push(file);
