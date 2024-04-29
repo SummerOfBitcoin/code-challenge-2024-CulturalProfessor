@@ -92,6 +92,10 @@ function verifyTransaction(transactionJSON, realFilename) {
         // console.log("P2WPKH verification passed", vin.length);
         flag = true;
       }
+    } else {
+      flag = false;
+      // console.log('file',realFilename)
+      return;
     }
   });
   let outputValue = 0;
@@ -170,7 +174,7 @@ export async function readTransactions() {
       totalValue += value;
       if (flag) {
         if (transactionJSON.vin.length < 300) {
-          // console.log("Input", file,transactionJSON.vin.length);
+          // console.log("Input", file, transactionJSON.vin.length);
           validTxids.push(doubledSHA256Trxn);
           validFiles.push(file);
           totalFees += fees;
