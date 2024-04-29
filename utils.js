@@ -83,7 +83,7 @@ export async function getWTXIDS(validFiles) {
           const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
           txids.push(doubledSHA256Trxn);
       } else {
-        // console.log("Non Witness Transaction",file);
+        console.log(file); 
         // serializedTransactionData = serializeTransaction(transactionJSON);
       }
     } catch (e) {

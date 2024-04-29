@@ -127,7 +127,25 @@ export async function readTransactions() {
         file ===
           "135042e51af63eab5e03844221138d1cf02fa2153857f052d04fb6acb90be48f.json" ||
         file ===
-          "1c23e360add7663ac0fa03734f9e41b610f75d159dc3e90c0b0e210afc2e6ad5.json"
+          "1c23e360add7663ac0fa03734f9e41b610f75d159dc3e90c0b0e210afc2e6ad5.json" ||
+        file ===
+          "25228e1d94fe8aff6f67228d128a4475b9dbaa47021dcb1d5c805e801f6167f2.json" ||
+        file ===
+          "7a77de4a825200f3823f7489415bd062fa165d91d58716eeff6bf99882f7e357.json" ||
+        file ===
+          "7ae5572b467379e6565b0880cadb3bab4eeb8aa4fc025cb9361ed5f3dfc08192.json" ||
+        file ===
+          "8c16f4079d0f45fe63d5a3d3674951eeb1aceb737eca3cf37905ddbcba4cf5ab.json" ||
+        file ===
+          "9bf76ba33f8680af53c8bb7001e6ff83b452bcfe3a94f47a906242d6a815015b.json" ||
+        file ===
+          "a4d6c8026529393b3f91cbd2bc93db7ef6b6d0f32a340b1f218e2d3b62f37a03.json" ||
+        file ===
+          "a84025ae6b9f390a93eef3f9c4456d1b54c25b3fcf076cb5ce581627e56a31c7.json" ||
+        file ===
+          "c9898348b700cb4637ab9121b572f803165b02a22ae59f51eea0cdf2afaa5d85.json" ||
+        file ===
+          "f6dfb38913ad5eddb1a88caaea636e6948fb38112acfbaa7f7f3307f0bd25050.json"
       ) {
         continue;
       }
