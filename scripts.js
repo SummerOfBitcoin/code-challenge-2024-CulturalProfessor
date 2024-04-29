@@ -43,19 +43,13 @@ export function verifyP2PKHScript(
       const DEREncodedSignatureHex = stack.pop();
 
       const publicKeyBuffer = Buffer.from(publicKeyHex, "hex");
-      const { r, s } = derToRS(DEREncodedSignatureHex);
-      if (r === undefined || s === undefined) {
-        return false;
-      }
-      let signature = Buffer.from(r + s, "hex");
-      if (signature.length !== 64) {
-        signature = Buffer.concat([
-          Buffer.alloc(64 - signature.length, 0),
-          signature,
-        ]);
-      }
+      const signatureBuffer = Buffer.from(DEREncodedSignatureHex, "hex");
+      const sigDEC = secp256k1.signatureImport(
+        signatureBuffer.slice(0, signatureBuffer.byteLength - 1)
+      );
+
       const result = secp256k1.ecdsaVerify(
-        signature,
+        sigDEC,
         Buffer.from(messageHash, "hex"),
         publicKeyBuffer
       );
