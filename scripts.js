@@ -4,19 +4,17 @@ import secp256k1 from "secp256k1";
 import { derToRS } from "./utils.js";
 
 export function verifyP2PKHScript(
-  prevout,
-  scriptsig,
-  scriptsig_asm,
+  scriptpubkey_asm,
+  signatureHex,
+  publicKeyHex,
   messageHash
 ) {
   const stack = new Stack();
-  const { scriptpubkey_asm } = prevout;
-
   const prevoutScriptAsm = scriptpubkey_asm.split(" ");
-  const scriptSigAsm = scriptsig_asm.split(" ");
+  // const scriptSigAsm = scriptsig_asm.split(" ");
 
-  const signatureHex = scriptSigAsm[1];
-  const publicKeyHex = scriptSigAsm[3];
+  // const signatureHex = scriptSigAsm[1];
+  // const publicKeyHex = scriptSigAsm[3];
 
   stack.push(signatureHex);
   stack.push(publicKeyHex);
@@ -86,9 +84,12 @@ export function verifyP2WPKHScript(prevout, witness, msgHash) {
   // Extract signature and public key from witness
   const signatureHex = witness[0];
   const publicKeyHex = witness[1];
-
+  // const publicKeyHex = prevout.scriptpubkey_asm.split(" ")[2];
+  // console.log("Public Key Hex:", publicKeyHex);
   // Verify the signature
   const publicKeyBuffer = Buffer.from(publicKeyHex, "hex");
+
+  // Use p2pkh here for verification
 
   const signatureBuffer = Buffer.from(signatureHex,"hex");
   const sigDEC = secp256k1.signatureImport(
@@ -100,6 +101,13 @@ export function verifyP2WPKHScript(prevout, witness, msgHash) {
     Buffer.from(msgHash, "hex"),
     publicKeyBuffer
   );
+  // const scriptpubkey_asm = `OP_DUP OP_HASH160 OP_PUSHBYTES_20 ${publicKeyHex} OP_EQUALVERIFY OP_CHECKSIG`;
+  // const result = verifyP2PKHScript(
+  //   scriptpubkey_asm,
+  //   signatureHex,
+  //   publicKeyHex,
+  //   msgHash
+  // );
 
   return result;
 }
