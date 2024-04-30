@@ -29,8 +29,8 @@ async function createBlock() {
   let wtxids = await getWTXIDS(validFiles);
 
   wtxids.unshift("00".repeat(32));
-  wtxids = wtxids.map((txid) => {
-    return reverseBytes(txid);
+  wtxids = wtxids.map((wtxid) => {
+    return reverseBytes(wtxid);
   });
   let witnessRootHash = await createMerkleRoot(wtxids);
   let witnessReservedValue =
