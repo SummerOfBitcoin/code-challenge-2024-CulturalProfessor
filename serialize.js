@@ -51,7 +51,6 @@ export function serializeSegWitTransactionForWTXID(transaction) {
   });
 
   // Serialize witness
-  // Serialize witness
   vin.forEach((input) => {
     if (input.witness && input.witness.length > 0) {
       serializedTransaction += input.witness.length

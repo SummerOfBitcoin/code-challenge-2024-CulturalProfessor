@@ -62,22 +62,15 @@ const transactionJSON = {
 function verifyTransaction(transactionJSON, realFilename) {
   const { vin, vout, version, locktime } = transactionJSON;
   const serializedTransactionData = serializeTransaction(transactionJSON);
-  // console.log("Serialized Transaction Data:", serializedTransactionData);
   const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
   const reversedDoubledSHA256Trxn = reverseBytes(doubledSHA256Trxn);
-  // console.log(doubledSHA256Trxn);
-  // Double SHA256 -> Reverse -> SHA256 for filename
   const filename = CryptoJS.SHA256(
     CryptoJS.enc.Hex.parse(reversedDoubledSHA256Trxn)
   ).toString();
-  // console.log("Filename:", filename);
-
-  // SERIALIZATION FOR SEGREGATED WITNESS NOT INCLUDEDS MARKER,FLAG AND WITNESS
 
   let flag = false;
   let value = 0;
   let inputValue = 0;
-  let c = 0;
 
   vin.forEach((input, index) => {
     const { prevout, scriptsig, scriptsig_asm, vout } = input;
@@ -90,13 +83,10 @@ function verifyTransaction(transactionJSON, realFilename) {
 
       const msgHash = msgHashForSegWitSigVerification(transactionJSON, index);
       const verificationResult = verifyP2WPKHScript(prevout, witness, msgHash);
-      // Implement P2WPKH verification
       if (!verificationResult) {
-        // console.log("P2WPKH verification failed", vin.length);
         flag = false;
         return;
       } else {
-        // console.log("P2WPKH verification passed", vin.length);
         flag = true;
       }
     } else {
@@ -110,10 +100,8 @@ function verifyTransaction(transactionJSON, realFilename) {
     outputValue += output.value;
   });
   let fees = inputValue - outputValue;
-  return { flag, doubledSHA256Trxn, value, filename, fees, c };
+  return { flag, doubledSHA256Trxn, value, filename, fees };
 }
-
-// console.log("Verification result:", verifyTransaction(transactionJSON));
 
 export async function readTransactions() {
   const mempoolPath = "./mempool";
@@ -223,7 +211,7 @@ export async function readTransactions() {
       }
       const data = await fs.promises.readFile(filePath, "utf8");
       const transactionJSON = JSON.parse(data);
-      const { flag, doubledSHA256Trxn, value, filename, fees, c } =
+      const { flag, doubledSHA256Trxn, value, filename, fees } =
         verifyTransaction(transactionJSON, file);
 
       totalValue += value;
@@ -235,7 +223,6 @@ export async function readTransactions() {
             });
             continue;
           }
-          // console.log("Input", file, transactionJSON.vin.length);
           validTxids.push(doubledSHA256Trxn);
           validFiles.push(file);
           totalFees += fees;
@@ -252,5 +239,3 @@ export async function readTransactions() {
     totalFees: totalFees,
   };
 }
-
-// await readTransactions();

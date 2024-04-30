@@ -80,10 +80,10 @@ export async function getWTXIDS(validFiles) {
       if (flag) {
         serializedTransactionData =
           serializeSegWitTransactionForWTXID(transactionJSON);
-          const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
-          txids.push(doubledSHA256Trxn);
+        const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
+        txids.push(doubledSHA256Trxn);
       } else {
-        console.log(file); 
+        console.log(file);
         // serializedTransactionData = serializeTransaction(transactionJSON);
       }
     } catch (e) {
@@ -92,46 +92,6 @@ export async function getWTXIDS(validFiles) {
   }
   return txids;
 }
-
-// export function createCoinbaseTransaction(totalValue, witnessCommitment) {
-//   const coinbaseTransaction = {
-//     version: 2,
-//     locktime: 0,
-//     vin: [
-//       {
-//         txid: "0000000000000000000000000000000000000000000000000000000000000000",
-//         vout: 4294967295,
-//         scriptsig: "",
-//         scriptsig_asm: "",
-//         witness: [
-//           "304402201c91da3c6363ae4ae824fac90bcc5044e17a619e09eddcfe4fe3b3b547c4da7f02206ef0112cdd3e1516fa4ec285b1343c151a3337622da1d5c5da272bedeb25660501",
-//           "03610ec7abcea7ca2b42974cebb42c24ed1943493e94f5b7bc6d8352e308fbf268",
-//         ],
-//         is_coinbase: true,
-//         sequence: "ffffffff",
-//       },
-//     ],
-//     vout: [
-//       {
-//         scriptpubkey_type: "p2pkh",
-//         scriptpubkey_address: "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa",
-//         scriptpubkey: "76a91462e907b15cbf27d5425399ebf6f0fb50ebb88f1888ac",
-//         scriptpubkey_asm:
-//           "OP_DUP OP_HASH160 OP_PUSHBYTES_20 62e907b15cbf27d5425399ebf6f0fb50ebb88f18 OP_EQUALVERIFY OP_CHECKSIG",
-//         value: totalValue,
-//       },
-//       {
-//         scriptpubkey: witnessCommitment,
-//         scriptpubkey_asm:
-//           "OP_0 OP_PUSHBYTES_20 a171823325dbad4dbdc558b29f1778eedff066de",
-//         scriptpubkey_type: "p2wpkh",
-//         scriptpubkey_address: "bc1q59ccyve9mwk5m0w9tzef79mcam0lqek775sr3w",
-//         value: 0,
-//       },
-//     ],
-//   };
-//   return coinbaseTransaction;
-// }
 
 export function createCoinbaseTransaction(blockReward, scriptpubkey) {
   return `010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff2503233708184d696e656420627920416e74506f6f6c373946205b8160a4256c0000946e0100ffffffff02${blockReward}1976a914745d83affb76096abeb668376a8a62b6cb00264c88ac000000000000000026${scriptpubkey}0120000000000000000000000000000000000000000000000000000000000000000000000000`;
@@ -145,18 +105,17 @@ export function createMerkleRoot(txids) {
       const result = [];
       for (let i = 0; i < txids.length; i += 2) {
         const one = txids[i];
-        const two = i + 1 < txids.length ? txids[i + 1] : one; // Ensure last element is concatenated with itself if odd number of elements
+        const two = i + 1 < txids.length ? txids[i + 1] : one;
         const concat = one + two;
         result.push(doubleSHA256Hash(concat));
       }
       txids = result;
     }
-
     // Return the Merkle root
     return txids[0];
   } catch (error) {
     console.error("Error in createMerkleRoot:", error);
-    throw error; // Propagate the error to the caller
+    throw error; 
   }
 }
 

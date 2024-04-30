@@ -11,13 +11,12 @@ import {
 } from "./utils.js";
 
 async function createBlock() {
-  const startTime = Date.now(); // Record the start time
   const version = "00000001";
   const previousBlockHash = "00".repeat(32);
   let time = Math.floor(Date.now() / 1000)
     .toString(16)
     .padStart(8, "0");
-  let { totalValue, validTxids, validFiles, totalFees } =
+  let { validTxids, validFiles, totalFees } =
     await readTransactions();
   // console.log("Total Fees: ", totalFees);
   let blockSubsidy = 624981725;
@@ -84,10 +83,6 @@ async function createBlock() {
   // writeInFile("./txid.txt", txids);
   writeInFile("./validtxid.txt", validTxids);
   writeInFile("./wtxid.txt", wtxids);
-
-  const endTime = Date.now();
-  const executionTime = (endTime - startTime) / 60000;
-  // console.log(`Execution time: ${executionTime} Minutes`);
 }
 
 createBlock();
