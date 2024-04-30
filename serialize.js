@@ -96,7 +96,7 @@ export function serializeTransaction(transaction) {
     } else {
       serializedTransaction += "00";
     }
-    serializedTransaction += input.sequence.toString(16).padStart(8, "0");
+    serializedTransaction += reverseBytes(input.sequence.toString(16).padStart(8, "0"));
   });
 
   // Serialize vout length

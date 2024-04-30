@@ -4,7 +4,10 @@ import {
   verifyP2WPKHScript,
   // verifyP2WSHscript,
 } from "./scripts.js";
-import { serializeTransaction } from "./serialize.js";
+import {
+  serializeSegWitTransactionForWTXID,
+  serializeTransaction,
+} from "./serialize.js";
 import {
   msgHashForSegWitSigVerification,
   msgHashForSigVerification,
@@ -13,54 +16,56 @@ import { reverseBytes, doubleSHA256Hash } from "./utils.js";
 import fs from "fs";
 
 const transactionJSON = {
-  version: 2,
+  version: 1,
   locktime: 0,
   vin: [
     {
-      txid: "2af93c8cfa2893c85559ca4be6736f0c7b60fd79ef7a40ed164ca5639d82784d",
-      vout: 1,
+      txid: "ba2eaef492b66d3c90ff6256a87bd6d77a104ab0e57f2f550b9bb052deb2cfd7",
+      vout: 0,
       prevout: {
-        scriptpubkey: "0014f072e4acac6b1f0b63fb691e28be84f4d0c0f9c3",
+        scriptpubkey: "001444a43968cf3bbfa4c983d52fc23a8385879018c0",
         scriptpubkey_asm:
-          "OP_0 OP_PUSHBYTES_20 f072e4acac6b1f0b63fb691e28be84f4d0c0f9c3",
+          "OP_0 OP_PUSHBYTES_20 44a43968cf3bbfa4c983d52fc23a8385879018c0",
         scriptpubkey_type: "v0_p2wpkh",
-        scriptpubkey_address: "bc1q7pewft9vdv0skclmdy0z305y7ngvp7wremu33f",
-        value: 423477,
+        scriptpubkey_address: "bc1qgjjrj6x08wl6fjvr65huyw5rskreqxxqkwp938",
+        value: 3742186,
       },
       scriptsig: "",
       scriptsig_asm: "",
       witness: [
-        "3044022023ed16234c7ca604f97f2cf7afb4e7bf1cd66a959f2670cd11bd80a1c8966891022027b5e0ca2dc14f5183dd5c883bdaf13d2b5705308902eb4ded504e93fa1900d801",
-        "039c68804f615b49343be8c2b5b5376329045f47a5e49a9edea8a04d0e0dbb9478",
+        "304402206b9498d1552e6e91b6a1995186918651813cca1f78050a1e7b9c7d2730bd629c02200cc02c7c1c4d563ef4de37819456b4a28939d5c64a6065f54fbb6666fabe11c801",
+        "0206f8ec2c79c13a13ebf67f9e9f4f288a66f873e3081578fe0d38194ea9ed7805",
       ],
       is_coinbase: false,
-      sequence: 4294967293,
+      sequence: 4294967295,
     },
   ],
   vout: [
     {
-      scriptpubkey: "0014d421f3b1e2c8234c2023315ad4a81ff8c9e9bf2b",
+      scriptpubkey: "76a91464b7752f00a75adaf7368b83a6e3418a2b66d60488ac",
       scriptpubkey_asm:
-        "OP_0 OP_PUSHBYTES_20 d421f3b1e2c8234c2023315ad4a81ff8c9e9bf2b",
-      scriptpubkey_type: "v0_p2wpkh",
-      scriptpubkey_address: "bc1q6ssl8v0zeq35cgprx9ddf2qllry7n0etdrkqxp",
-      value: 285061,
+        "OP_DUP OP_HASH160 OP_PUSHBYTES_20 64b7752f00a75adaf7368b83a6e3418a2b66d604 OP_EQUALVERIFY OP_CHECKSIG",
+      scriptpubkey_type: "p2pkh",
+      scriptpubkey_address: "1ABYM3x8jyDwMAMv3Rdc9bpfaVtMCtR8Ng",
+      value: 1906055,
     },
     {
-      scriptpubkey: "a91455e1cc9b31942addc939ebb97d40ac67e03eb10f87",
+      scriptpubkey: "001444a43968cf3bbfa4c983d52fc23a8385879018c0",
       scriptpubkey_asm:
-        "OP_HASH160 OP_PUSHBYTES_20 55e1cc9b31942addc939ebb97d40ac67e03eb10f OP_EQUAL",
-      scriptpubkey_type: "p2sh",
-      scriptpubkey_address: "39X7rezLMxawPjicKma2Ftitw4xjZ7SdeB",
-      value: 136327,
+        "OP_0 OP_PUSHBYTES_20 44a43968cf3bbfa4c983d52fc23a8385879018c0",
+      scriptpubkey_type: "v0_p2wpkh",
+      scriptpubkey_address: "bc1qgjjrj6x08wl6fjvr65huyw5rskreqxxqkwp938",
+      value: 1832243,
     },
   ],
 };
 function verifyTransaction(transactionJSON, realFilename) {
   const { vin, vout, version, locktime } = transactionJSON;
   const serializedTransactionData = serializeTransaction(transactionJSON);
+  // console.log("Serialized Transaction Data:", serializedTransactionData);
   const doubledSHA256Trxn = doubleSHA256Hash(serializedTransactionData);
   const reversedDoubledSHA256Trxn = reverseBytes(doubledSHA256Trxn);
+  // console.log(doubledSHA256Trxn);
   // Double SHA256 -> Reverse -> SHA256 for filename
   const filename = CryptoJS.SHA256(
     CryptoJS.enc.Hex.parse(reversedDoubledSHA256Trxn)
@@ -72,6 +77,7 @@ function verifyTransaction(transactionJSON, realFilename) {
   let flag = false;
   let value = 0;
   let inputValue = 0;
+  let c = 0;
 
   vin.forEach((input, index) => {
     const { prevout, scriptsig, scriptsig_asm, vout } = input;
@@ -81,6 +87,7 @@ function verifyTransaction(transactionJSON, realFilename) {
     }
     if (input.prevout.scriptpubkey_type === "v0_p2wpkh") {
       const { witness } = input;
+
       const msgHash = msgHashForSegWitSigVerification(transactionJSON, index);
       const verificationResult = verifyP2WPKHScript(prevout, witness, msgHash);
       // Implement P2WPKH verification
@@ -94,16 +101,16 @@ function verifyTransaction(transactionJSON, realFilename) {
       }
     } else {
       flag = false;
-      // console.log('file',realFilename)
       return;
     }
   });
+
   let outputValue = 0;
   transactionJSON.vout.forEach((output) => {
     outputValue += output.value;
   });
   let fees = inputValue - outputValue;
-  return { flag, doubledSHA256Trxn, value, filename, fees };
+  return { flag, doubledSHA256Trxn, value, filename, fees, c };
 }
 
 // console.log("Verification result:", verifyTransaction(transactionJSON));
@@ -216,27 +223,18 @@ export async function readTransactions() {
       }
       const data = await fs.promises.readFile(filePath, "utf8");
       const transactionJSON = JSON.parse(data);
-      const { flag, doubledSHA256Trxn, value, filename, fees } =
+      const { flag, doubledSHA256Trxn, value, filename, fees, c } =
         verifyTransaction(transactionJSON, file);
-
-      if (`${filename}.json` !== file) {
-        fs.writeFileSync("./nonSerial.txt", `${file}\t${flag}\n`, {
-          flag: "a",
-        });
-      }
 
       totalValue += value;
       if (flag) {
         if (transactionJSON.vin.length < 300) {
-          let invf = [];
-          transactionJSON.vin.forEach((input) => {
-            if (
-              !input.witness ||
-              input.prevout.scriptpubkey_type !== "v0_p2wpkh"
-            ) {
-              console.log(file);
-            }
-          });
+          if (`${filename}.json` !== file && flag) {
+            fs.writeFileSync("./nonSerial.txt", `${file}\t${flag}\n`, {
+              flag: "a",
+            });
+            continue;
+          }
           // console.log("Input", file, transactionJSON.vin.length);
           validTxids.push(doubledSHA256Trxn);
           validFiles.push(file);
